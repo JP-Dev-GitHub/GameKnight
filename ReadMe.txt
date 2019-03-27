@@ -25,3 +25,4 @@ Click 'Let's Play!'
 ## TO DO ##
 - allow Discord access for bots to send invites
 - allow an invite link to specify who can make it and who can't
+- send surveys / notifications when game night events are ran
