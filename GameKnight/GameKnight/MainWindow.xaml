@@ -7,6 +7,15 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <!-- Buttons arranged vertically inside a StackPanel. -->
+        <StackPanel HorizontalAlignment="Left" Margin="298,126,0,53.667" Width="212">
+            <Button> Add New Game </Button>
+            <Button>Add New Participant</Button>
+            <Button Margin="298,126,0,53.667" Click="Button_Click"> Let's Play! </Button>
+        </StackPanel>
+        <StackPanel Margin="628,10,10.333,189.667">
+            <Label FontWeight="Bold">Application Options</Label>
+            <CheckBox IsChecked="False">Ballot</CheckBox>
+        </StackPanel>
     </Grid>
 </Window>
