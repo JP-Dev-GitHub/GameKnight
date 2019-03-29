@@ -20,19 +20,28 @@ namespace GameKnight
 {
     public class DataStore
     {
-        List<string> participants;
-        List<string> games;
-        List<List<int>> matrix;
+        public List<string> participants;
+        public List<string> games;
+        public List<List<int>> matrix;
     }
 
-    
+    public class RawData
+    {
+        public List<List<string>> rawData { get; set; }
+    }
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        // Global Information
+        public dynamic array;
         public DataStore data;
+
+        public bool pIncludeEveryone = false;
+        public bool pUseBallot = false;
+        public int pBallotNum = 3;
 
         public MainWindow()
         {
@@ -50,6 +59,7 @@ namespace GameKnight
         {
             Console.WriteLine("oh boy rick! ");
             MyPopup.IsOpen = true;
+            pUseBallot = pUseBallot;
         }
 
         private void AddNewParticipant(object sender, RoutedEventArgs e)
@@ -57,26 +67,59 @@ namespace GameKnight
             
         }
 
+        private void IncludeEveryone_Checked(object sender, RoutedEventArgs e)
+        {
+            pIncludeEveryone = (bool)IncludeEveryone_chbx.IsChecked;
+        }
+
+        private void UseBallot_chbx_Checked(object sender, RoutedEventArgs e)
+        {
+            pUseBallot = (bool)UseBallot_chbx.IsChecked;
+        }
+
+        private void BallotNumber_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string val = ((ComboBoxItem)BallotNum_cmbx.SelectedItem).Content as string;
+            if (val != null)
+                pBallotNum = Int32.Parse(val);
+        }
+
         public DataStore LoadJson(string fp)
         {
-            DataStore data = new DataStore();
-            dynamic array;
+            data = new DataStore();
+            
             Console.WriteLine("Reading JSON...");
             using (StreamReader r = new StreamReader(fp))
             {
                 string json = r.ReadToEnd();
-                //List<Item> items = JsonConvert.DeserializeObject<List<Item>>(json);
                 array = JsonConvert.DeserializeObject(json);
             }
 
-            
-            foreach (var item in array)
+            // convert to C# List of List of strings
+            array = array.ToObject<List<List<string>>>();
+
+            data.games = array[0];
+            //foreach (var item in array)
+            //{
+            //    var arr = item.ToObject<List<string>>();
+            //    Console.WriteLine(item.GetType());
+            //}
+
+            //for(int i = 0; i < temp[0].Length; ++i)
+            //{
+            //    data.games.Add(temp);
+            //}
+
+
+            foreach (var item in data.games)
             {
                 Console.WriteLine(item);
+                
             }
 
             return data;
         }
+
 
     }
 }
