@@ -6,16 +6,36 @@
         xmlns:local="clr-namespace:GameKnight"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <Thickness x:Key="tbMargin">0,20,0,0</Thickness>
+    </Window.Resources>
     <Grid>
         <!-- Buttons arranged vertically inside a StackPanel. -->
-        <StackPanel HorizontalAlignment="Left" Margin="298,126,0,53.667" Width="212">
-            <Button> Add New Game </Button>
-            <Button>Add New Participant</Button>
-            <Button Margin="298,126,0,53.667" Click="Button_Click"> Let's Play! </Button>
+        <StackPanel HorizontalAlignment="Left" Margin="293,56,0,208" Width="212">
+            <Button Click="AddNewGame">Add New Game</Button>
+            <Button Click="AddNewParticipant">Add New Participant</Button>
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Margin" Value="{StaticResource tbMargin}"/>
+                </Style>
+            </StackPanel.Resources>
         </StackPanel>
         <StackPanel Margin="628,10,10.333,189.667">
             <Label FontWeight="Bold">Application Options</Label>
-            <CheckBox IsChecked="False">Ballot</CheckBox>
+            <CheckBox Margin="0,10,0,0" IsChecked="False">Ballot</CheckBox>
+            <ComboBox Margin="0,15,0,0">
+                <ComboBoxItem IsSelected="True">2</ComboBoxItem>
+                <ComboBoxItem IsSelected="False">3</ComboBoxItem>
+                <ComboBoxItem IsSelected="True">4</ComboBoxItem>
+                <ComboBoxItem IsSelected="False">5</ComboBoxItem>
+                <ComboBoxItem IsSelected="False">6</ComboBoxItem>
+            </ComboBox>
         </StackPanel>
+        <Button Click="LetsPlay" Margin="327,328,327,35" Content="Let's Play!"/>
+        <Popup Name="MyPopup"
+               Placement="Mouse"
+               HorizontalOffset="-100"
+               VerticalOffset="-100"
+               AllowsTransparency="True"/>
     </Grid>
 </Window>
