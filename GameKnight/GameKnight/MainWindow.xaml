@@ -13,7 +13,7 @@
         <!-- Buttons arranged vertically inside a StackPanel. -->
         <StackPanel HorizontalAlignment="Left" Margin="293,56,0,208" Width="212">
             <Button Click="AddNewGame">Add New Game</Button>
-            <Button Click="AddNewParticipant">Add New Participant</Button>
+            <Button Click="AddNewUser">Add New Participant</Button>
             <StackPanel.Resources>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Margin" Value="{StaticResource tbMargin}"/>
@@ -22,11 +22,14 @@
         </StackPanel>
         <StackPanel Margin="628,10,10.333,189.667">
             <Label FontWeight="Bold">Application Options</Label>
-            <CheckBox Name="IncludeEveryone_chbx" Margin="0,5,0,0" IsChecked="False" Checked="IncludeEveryone_Checked">Include Everyone</CheckBox>
-            <CheckBox Name="UseBallot_chbx" Margin="0,15,0,0" IsChecked="False" Checked="UseBallot_chbx_Checked">Ballot</CheckBox>
+            <CheckBox Name="IncludeEveryone_chbx" ToolTip="Check this box if you want to ensure everyone owns the games that are put on the ballot." 
+                      Margin="0,5,0,0" IsChecked="False" Checked="IncludeEveryone_Checked">Include Everyone</CheckBox>
+            <CheckBox Name="UseBallot_chbx" ToolTip="Check this box if you want more than 1 game to be selected and voted on."
+                      Margin="0,15,0,0" IsChecked="False" Checked="UseBallot_chbx_Checked">Ballot</CheckBox>
             <ComboBox Name="BallotNum_cmbx" Margin="0,8,0,0" SelectionChanged="BallotNumber_SelectionChanged">
+                <ComboBoxItem IsSelected="True">Total Games</ComboBoxItem>
                 <ComboBoxItem IsSelected="False">2</ComboBoxItem>
-                <ComboBoxItem IsSelected="True">3</ComboBoxItem>
+                <ComboBoxItem IsSelected="False">3</ComboBoxItem>
                 <ComboBoxItem IsSelected="False">4</ComboBoxItem>
                 <ComboBoxItem IsSelected="False">5</ComboBoxItem>
                 <ComboBoxItem IsSelected="False">6</ComboBoxItem>
