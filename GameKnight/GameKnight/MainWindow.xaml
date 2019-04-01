@@ -9,18 +9,18 @@
     <Window.Resources>
         <Thickness x:Key="tbMargin">0,20,0,0</Thickness>
     </Window.Resources>
-    <Grid>
+    <Grid Background="#3A9CCE">
         <!-- Buttons arranged vertically inside a StackPanel. -->
         <StackPanel HorizontalAlignment="Left" Margin="293,56,0,208" Width="212">
-            <Button Click="AddNewGame">Add New Game</Button>
-            <Button Click="AddNewUser">Add New Participant</Button>
+            <Button Click="AddNewGame" Background="#8F5CE1">Add New Game </Button>
+            <Button Click="AddNewUser" Background="#8F5CE1">Add New User</Button>
             <StackPanel.Resources>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Margin" Value="{StaticResource tbMargin}"/>
                 </Style>
             </StackPanel.Resources>
         </StackPanel>
-        <StackPanel Margin="628,10,10.333,189.667">
+        <StackPanel Margin="628,10,10,279">
             <Label FontWeight="Bold">Application Options</Label>
             <CheckBox Name="IncludeEveryone_chbx" ToolTip="Check this box if you want to ensure everyone owns the games that are put on the ballot." 
                       Margin="0,5,0,0" IsChecked="False" Checked="IncludeEveryone_Checked">Include Everyone</CheckBox>
@@ -35,11 +35,12 @@
                 <ComboBoxItem IsSelected="False">6</ComboBoxItem>
             </ComboBox>
         </StackPanel>
-        <Button Click="LetsPlay" Margin="327,328,327,35" Content="Let's Play!"/>
+        <Button Click="LetsPlay" Margin="327,328,327,35" Content="Let's Play!" Background="#DC951F"/> 
         <Popup Name="MyPopup"
                Placement="Mouse"
                HorizontalOffset="-100"
                VerticalOffset="-100"
                AllowsTransparency="True"/>
+        <Image x:Name="image" HorizontalAlignment="Left" Height="120" Margin="10,10,0,0" VerticalAlignment="Top" Width="115" Source="Images/GameKnight_Logo.png"/>
     </Grid>
 </Window>

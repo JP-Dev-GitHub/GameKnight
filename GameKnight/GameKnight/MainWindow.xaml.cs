@@ -16,6 +16,7 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.ComponentModel;
+using Microsoft.VisualBasic;
 
 
 namespace GameKnight
@@ -38,8 +39,9 @@ namespace GameKnight
     public partial class MainWindow : Window
     {
         // Global Information
+        public const int UPDATE_DIRECTIVE = 0;
         public const int ADD_USER_DIRECTIVE = 1;
-        public const int ADD_GAME_DIRECTIVE = 1;
+        public const int ADD_GAME_DIRECTIVE = 2;
         public string PATH = @"C:\Users\Joshx\Desktop\GameKnight\";
 
         public dynamic array;
@@ -54,12 +56,35 @@ namespace GameKnight
             InitializeComponent();
             PATH = Directory.GetCurrentDirectory();
             PATH = PATH.Substring(0, PATH.IndexOf("GameKnight") + 10) + "\\";
+            UpdateJsonData();
             data = LoadJson(PATH + "data.json");
         }
 
+        // ----------------------------------------------------------- Implementation ----------------------------------------------------------- //
+
         private void AddNewGame(object sender, RoutedEventArgs e)
         {
+            string newGameName = Interaction.InputBox("Enter new game name: ", "Add New Game", "-", -1, -1);
+            try
+            {
+                string cmd = "python " + PATH + "sheet_handler.py " + ADD_GAME_DIRECTIVE + " " + newGameName;
 
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = "CMD.exe";
+                p.StartInfo.Arguments = "/c " + cmd;
+                p.Start();
+
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                MessageBox.Show(output);
+                MessageBox.Show("Successfully added");
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Error! Could not add " + newGameName + ":\n" + e);
+            }
         }
 
         private void LetsPlay(object sender, RoutedEventArgs e)
@@ -71,7 +96,7 @@ namespace GameKnight
         private void AddNewUser(object sender, RoutedEventArgs e)
         {
             string newUser = "sam";
-            string cmd = "python" + PATH + "sheet_handler.py " + ADD_USER_DIRECTIVE + newUser;
+            string cmd = "python " + PATH + "sheet_handler.py " + ADD_USER_DIRECTIVE + " " + newUser;
             //cmd = "python test.py";
             
             // Start the child process.
@@ -142,30 +167,16 @@ namespace GameKnight
             return data;
         }
 
-        //string GetPath()
-        //{
-        //    string parms = @"pwd";
-        //    string output = "";
-        //    string error = string.Empty;
-
-        //    ProcessStartInfo psi = new ProcessStartInfo("reg.exe", parms);
-
-        //    psi.RedirectStandardOutput = true;
-        //    psi.RedirectStandardError = true;
-        //    psi.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
-        //    psi.UseShellExecute = false;
-        //    System.Diagnostics.Process reg;
-        //    reg = System.Diagnostics.Process.Start(psi);
-        //    using (System.IO.StreamReader myOutput = reg.StandardOutput)
-        //    {
-        //        output = myOutput.ReadToEnd();
-        //    }
-        //    using (System.IO.StreamReader myError = reg.StandardError)
-        //    {
-        //        error = myError.ReadToEnd();
-
-        //    }
-        //    return output;
-        //}
+        public void UpdateJsonData()
+        {
+            string cmd = "python " + PATH + "sheet_handler.py " + UPDATE_DIRECTIVE;
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = "/C " + cmd;
+            process.StartInfo = startInfo;
+            process.Start();
+        }
     }
 }

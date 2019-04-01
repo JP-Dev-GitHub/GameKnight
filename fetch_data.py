@@ -1,11 +1,12 @@
-#!/usr/bin/python
+#! /usr/bin/python
+import os
 import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 
-SECRET_PATH = '/home/josh/Desktop/gameknight/GameKnight/client_secret.json'
-GAME_ID_PATH = '/home/josh/Desktop/gameknight/GameKnight/game_ids.txt'
-JSON_PATH = '/home/josh/Desktop/gameknight/GameKnight/data.json' 
+### DEFINES ###
+global SECRET_PATH
+global JSON_PATH
 
 
 def main():
@@ -20,7 +21,7 @@ def main():
     data['users'] = []
     matrix = []
     rows = sheet.row_count
-    cols = sheet.col_count
+    
     for ii in range(0, rows-1):
         matrix.append([])
 
@@ -29,9 +30,14 @@ def main():
     for ii in matrix:
         print (ii) # print rows
     
-    with open('data.json', 'w') as outfile:
+    with open(JSON_PATH, 'w') as outfile:
         json.dump(matrix, outfile)
     
 
 if __name__ == "__main__":
+    global SECRET_PATH
+    global JSON_PATH
+    SECRET_PATH = os.getcwd() + "\client_secret.json"
+    JSON_PATH = os.getcwd() + "\data.json"
+    print("MY SECRET PATH IS: " + SECRET_PATH)
     main()
