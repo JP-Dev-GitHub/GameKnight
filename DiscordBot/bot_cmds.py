@@ -3,6 +3,7 @@ import os
 import sys
 from datetime import datetime
 import random
+import math
 from enum import Enum
 from enum import IntFlag
 import json
@@ -13,8 +14,10 @@ NCAP_DEfINES = ["0\\N{COMBINING ENCLOSING KEYCAP}", "1\\N{COMBINING ENCLOSING KE
                 "3\\N{COMBINING ENCLOSING KEYCAP}", "4\\N{COMBINING ENCLOSING KEYCAP}", "5\\N{COMBINING ENCLOSING KEYCAP}", 
                 "6\\N{COMBINING ENCLOSING KEYCAP}", "7\\N{COMBINING ENCLOSING KEYCAP}", "8\\N{COMBINING ENCLOSING KEYCAP}", "9\\N{COMBINING ENCLOSING KEYCAP}"]
 EMOJI_TEXT = [":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:" ]
+PATH = ''
 GK_ROLE = 0 #561292277352235009 TODO: change this to Game Knight role when added to server 
 CDNTR_ROLE = 0 #511721787604729866 TODO: Change back to coordinator role: 550387319190978571
+DATE_LIMIT = 3
 
 CONFIG = {}
 BOT_ID = 0
@@ -22,7 +25,7 @@ CDNTR_ID = 0
 CHANNELS = ['game-night']
 
 
-GAME_LIST = ['test', 'list', 'kappa', 'nein', 'hitler', 'leggo bible']
+GAME_LIST = ['kappa', 'hitler', 'leggo bible', 'gearsofwar', 'nak', 'crashbandicoot']
 DATE_LIST = ['01/01 ~1pm', '01/02 ~2pm', '01/03 ~3pm' ]
 FINAL_DATE = ''
 FINAL_GAME = ''
@@ -31,19 +34,24 @@ FINAL_GAME = ''
 #           "142461721875972096" : [ 0,0,0 ]}
 VOTES = {}
 DONE_VOTING = {}
+REROLL_VOTERS = {}
+TOTAL_PLAYERS = 0
 
 class state(IntFlag):
     NONE = 0
     NEW_POLL = 1
     W4_RSVP = 2
     W4_VOTE = 3
+    VETO = 4
+    REROLLING = 5
 
 STATE = state.NEW_POLL
 
+################################   FUNCTIONS   ################################
+
 # READ TOKEN
 def readToken():
-    pwd = os.getcwd() + "\\DiscordBot\\"
-    with open(pwd + "token.txt", "r") as f:
+    with open(PATH + "DiscordBot\\token.txt", "r") as f:
         lines = f.readlines()
         return lines[0].strip()
 
@@ -73,7 +81,7 @@ def saveConfig(client, init = False):
         'CDNTR_ROLE': CDNTR_ROLE
     })
     # save the data to config
-    fp = os.getcwd() + "\\config.json"
+    fp = PATH + "config.json"
     with open(fp, 'w+') as outfile:  
         json.dump(config, outfile)
 
@@ -88,7 +96,7 @@ def loadConfig(client):
     global GK_ROLE
     global CDNTR_ROLE
 
-    fp = os.getcwd() + "\\config.json"
+    fp = PATH + "config.json"
     if os.path.isfile(fp): # check if the config exists
         with open(fp, "r") as f:
             CONFIG = json.load(f)
@@ -111,12 +119,12 @@ def loadConfig(client):
 
 
 def log(finalGame, finalDate, gameList):
-    fp = os.getcwd() + "\\record.log"
+    fp = PATH + "record.log"
     with open(fp, 'w+') as f:
         f.write('log for ' + finalDate + ' recorded at: ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
         f.write('Selected game: ' + finalGame + ':\n')
         f.write('Possible games: \n')
-        for ii in gameList:
+        for ii in range(0, len(gameList)):
             f.write('       ' + str(ii) + ": " + gameList[ii] + "\n")
 
 # return a list of all players that voted
@@ -132,7 +140,7 @@ def createPlayerList(votes):
 # the total number of games to place on the ballot,
 # and whether or not we include everyone's library in the ballot
 def loadBallotInfo():
-    fp = os.getcwd() + "\\ballot_info.json"
+    fp = PATH + "ballot_info.json"
     with open(fp, "r") as f:
         data = json.load(f)
         info = data['info'][0]
@@ -141,24 +149,35 @@ def loadBallotInfo():
         ignoreList = info['IGNORE_LIST']
         totalGames = info['TOTAL_GAMES']
         useEveryone = info['EVERYONE']
+        gameList = info['MASTER_GAME_LIST']
+
+        for ii in gameList:
+            print(ii)
     
-    return matrix, ignoreList, totalGames, useEveryone
+    return matrix, ignoreList, totalGames, useEveryone, gameList
 
 
 # takes in a dictionary of votes
 def getGameDate(votes):
-    voteTally = [ 0,0,0 ]
+    voteTally = []
+    for ii in range(0, DATE_LIMIT):
+        voteTally.append(0)
     for key in votes:
         for i in range(0, len(votes[key])):
             voteTally[i] += votes[key][i]
-    index = max(voteTally)
+            #print('ind: ' + str(i) + ', val: ' + str(voteTally[i]))
+    m = 0
+    for ii in range(0, len(voteTally)):
+        if voteTally[ii] > m:
+            m = voteTally[ii]
+            index = ii
+    print('max: ' + str(m) + ' @:' + str(index))
     return DATE_LIST[index]
 
 # takes a dict matrix and list ignoreList
 def initGameList(matrix, ignoreList):
     viableGameIndexes = []
     x = str(next(iter(matrix)))
-    print(len(matrix[x]))
     if len(GAME_LIST) != len(matrix[x]):
         print('ERROR: GAME_LIST length does not match matrix length!')
         return []
@@ -175,6 +194,9 @@ def generateBallot(matrix, ignoreList, totalGames, useEveryone, playerList):
     print('GENERATING BALLOT')
 
     viableGames = initGameList(matrix, ignoreList)
+    print('Viable games:')
+    for ii in viableGames:
+        print(ii)
     if not viableGames: # double check that we have a list of games
         exit(1) 
     
@@ -192,8 +214,9 @@ def generateBallot(matrix, ignoreList, totalGames, useEveryone, playerList):
             ballot.append(GAME_LIST[col])
         # randomly cut the list down to size
         while len(ballot) > totalGames:
-            x = random.randint(0, len(ballot)-1)
-            ballot.pop(x)
+            r1 = random.randint(0, len(ballot)-1)
+            print("Popping: " + str(r1))
+            ballot.pop(r1)
 
     else: # we can choose games that not everyone owns
         # loop through all viable games and
@@ -209,11 +232,10 @@ def generateBallot(matrix, ignoreList, totalGames, useEveryone, playerList):
 
 def getFinalGame(GAME_LIST, gameVotes):
     percents = []
-    finalGame = ''
-    for ii in range(0, len(gameVotes)):
-        print(gameVotes[ii])
-        if gameVotes[ii] == 0:
-            GAME_LIST.pop(ii)
+    print('DEBUGGING')
+    # for ii in range(0, len(gameVotes)):
+    #     if gameVotes[ii] == 0:
+    #         GAME_LIST.pop(ii)
     total = sum(gameVotes)
     print("total = " + str(total))
     # get a list of percentages
@@ -226,20 +248,23 @@ def getFinalGame(GAME_LIST, gameVotes):
     for ii in percents:
         print(ii)
     rand = random.randint(0, 100)
-    rand = float(rand) + float(random.randint(0, 99) / 99)
+    rand = float(rand) + float(random.randint(1, 99) / 99)
     print("Rand: " + str(rand))
-    for ii in range(0, len(percents-1)):
-        if rand < percents[ii]:
+    for ii in range(0, len(percents)-1):
+        if rand <= percents[ii]:
             print('Returning: ' + str(ii) + ", " + GAME_LIST[ii])
             return GAME_LIST[ii]
     print('Returning: ' + str(ii) + ", " + GAME_LIST[len(GAME_LIST) - 1])
     return GAME_LIST[len(GAME_LIST) - 1]
-# ----- Main() ----- #
 
+################################   Main()   ################################
+
+x = os.getcwd()
+PATH = x[:x.find('GameKnight')+10] + '\\'
 token = readToken() # this must be the first step!
 client = discord.Client()
 
-# ----- Main() ----- #
+################################   Main()   ################################
 
 # ON READY EVENT
 @client.event
@@ -278,7 +303,7 @@ async def on_ready():
     # print("total games: " + str(tg))
     # print("everyone: " + str(everyone))
     
-    # fp = os.getcwd() + "\\ballot_info.json"
+    # fp = PATH + "ballot_info.json"
     # with open(fp, 'w+') as outfile:  
     #     json.dump(bd, outfile)
     # print('DONE M8')
@@ -291,15 +316,15 @@ async def on_ready():
     loadConfig(client)
     print("Bot_ID: ", BOT_ID)
     print("CDNTR: ", CDNTR_ID)
-    
+
     if STATE == state.NEW_POLL:
         for channel in client.get_all_channels():
             if channel.name == 'game-night':
                 pass
                 #await channel.send('WTF is a :one:?') # test message
-                await channel.send("Hear ye! Hear ye! A message from the great Lord Game-Night-Coordinator!\n" +
+                await channel.send("@everyone Hear ye! Hear ye! A message from the great Lord Game-Night-Coordinator!\n" +
                     "A new Game Cruscade is upon us! Will you answer the call to glory?\n" +
-                    "Please *!vote* here for **ALL** RSVP options below that you can attend (you can DM me as well, if you're a coward): ")
+                    "Please **!vote** here for **ALL** RSVP options below that you can attend (you can DM me as well, if you're a coward): ")
                 for ii in range(0, len(DATE_LIST)):
                     await channel.send('{0} - '.format(EMOJI_TEXT[ii]) + DATE_LIST[ii])
                 STATE = state.W4_RSVP
@@ -313,7 +338,8 @@ async def on_message(message):
     global DONE_VOTING
     global FINAL_DATE
     global FINAL_GAME
-
+    global REROLL_VOTERS
+    global TOTAL_PLAYERS
     
     # only active in certain channels
     if str(message.channel) not in CHANNELS:
@@ -323,11 +349,52 @@ async def on_message(message):
     #print('State: ' + str(STATE))
     id = message.author.id
     nickname = message.author.display_name
+    msg = message.content
 
-##########################################
+################################    COMMANDS    ################################
+    
+    if STATE != state.REROLLING:
+        if id == BOT_ID: # ignore our own messages
+            return
+    else: # STATE = REROLLING so we need to continue to the W4_VOTE state
+        STATE = state.W4_VOTE
+    
+    # !HELP COMMAND
+    if (msg.find("!commands") != -1) or (msg.find("!help") != -1):
+        await message.channel.send(
+        "Greetings traveler! How may I be of assistance?\n" + 
+        "      -      **!help** / **!commands**  :  Issues the current help screen to view commands and other helpful information.\n" +
+        "      -      **!vote**  :  When a ballot is posted, use this cmd followed by a number emoji (:one:,:two:,:three:, etc.) to cast your vote.\n" +
+        "      -      **!status**  :  When a ballot is posted, use this cmd followed by a number emoji (:one:,:two:,:three:, etc.) to cast your vote.\n" +
+        "      -      **!veto**  :  Each player can use a veto command once when a game as been selected. If **more than half** the player veto, " +
+                                "then ballot is rerolled.\n" +
+        "      -      **!close**  :  [Coordinator CMD] Close the current RSVP poll. **No other users can join the poll after this command is used!**\n" +
+        "      -      **!kill**  :  [Coordinator CMD] Terminate the active poll. Use this when a poll is completed or " +
+                                "you want to restart. **WARNING: This will delete ALL current poll data!**\n\n")
 
-    if id == BOT_ID: # ignore our own messages
-        return
+    # !KILL COMMAND
+    if msg.find("!kill") != -1 and id == CDNTR_ID:
+        await message.channel.send("We've been routed! The battle is lost! Fall back, men! Retreat!!:arrow_left::horse_racing:\n" + 
+            ":robot: **Poll has been terminated** :robot:")
+        exit(0)
+
+    # # !STATUS COMMAND
+    if msg.find("!commands") != -1:
+        if STATE == state.NONE:
+            await message.channel.send("*STATUS* :  None. There is no active poll. Try **!kill** to turn me off. :flushed: ")
+        elif STATE == state.NEW_POLL:
+            await message.channel.send("*STATUS* :  NEW POLL. A new poll has just been started by the Coordinator.")
+        elif STATE == state.W4_RSVP:
+            await message.channel.send("*STATUS* :  W4 RSVP. Currently waiting for everyone to declare availability for upcoming game night.")
+        elif STATE == state.W4_VOTE:
+            await message.channel.send("*STATUS* :  W4 VOTE. Currently waiting for at-tendees to declare their preferred game from the ballot.")
+        elif STATE == state.VETO:
+            await message.channel.send("*STATUS* :  VETO. A game has been selected, you may now cast **!veto** if you want a different game.")
+        elif STATE == state.REROLLING:
+            await message.channel.send("*STATUS* :  REROLLING. Players didn't like the last game. Now rerolling ballot options.")
+
+################################    STATE LOGIC    ################################
+
     if STATE == state.W4_RSVP:
         #print('Comparing ID: ' + str(id) + " with BOT_ID: " + str(BOT_ID))
         if id == CDNTR_ID: # coordinator issued that the date vote be closed
@@ -335,34 +402,43 @@ async def on_message(message):
                 FINAL_DATE = getGameDate(VOTES)
                 await message.channel.send('The Almighty Coordinator has closed the RSVP poll!')
                 await message.channel.send('@everyone The selected Game Night will be: **' + FINAL_DATE + '**' )
-                matrix, ignoreList, totalGames, useEveryone = loadBallotInfo()
+
+                matrix, ignoreList, totalGames, useEveryone, GAME_LIST = loadBallotInfo()
                 playerList = createPlayerList(VOTES)
+                TOTAL_PLAYERS = len(playerList)
                 GAME_LIST = generateBallot(matrix, ignoreList, totalGames, useEveryone, playerList)
                 print('FINISHED W4RSVP, STARTING NEW POLL...')
-                await message.channel.send('The gods have spoken! Below are your glorious game choices:\n' + 
+                await message.channel.send('@everyone The gods have spoken! Below are your glorious game choices:\n' + 
                                             '[ *Remember* - you may only vote for 1 game using :one:, :two:, :three:, etc. ]')
-                print("GAME LIST: ")
+                botStr = ''
                 for ii in range(0, len(GAME_LIST)):
                     print(GAME_LIST[ii])
+                    botStr += '{0} - '.format(EMOJI_TEXT[ii]) + GAME_LIST[ii] + "\n"
                     # post each option that they can vote for
-                    await message.channel.send('{0} - '.format(EMOJI_TEXT[ii]) + GAME_LIST[ii])
+                await message.channel.send(botStr)
                 if len(GAME_LIST) <= 1:
-                    STATE = state.W4_VOTE
+                    FINAL_GAME = GAME_LIST[0]
+                    await message.channel.send("@everyone :crossed_swords: HUZZAH! :crossed_swords:\nOur game has been selected at last!\n" +
+                                        "We will be playing **" + FINAL_GAME + "** on the date of **" + FINAL_DATE + "**\n:shield: To arms! :dagger:")
+                    # log the results
+                    log(FINAL_GAME, FINAL_DATE, GAME_LIST)
+                    STATE = state.VETO
                 else:
                     STATE = state.W4_VOTE
                 print('FINISHED W4_RSVP, STARTING W4_VOTE...')
 
+        # check if the player voted for a date
         if message.content.find("!vote") != -1:
             validVote = False
             id = str(id)
             # reset / add the users votes
             VOTES[id] = [ 0,0,0 ]
             x = message.content.encode("ascii", 'namereplace').decode('utf-8')
-            for ii in range(1, len(NCAP_DEfINES)):
-                if x.find(NCAP_DEfINES[ii]) != -1:
-                    VOTES[id][ii-1] += 1
+            print(len(VOTES))
+            for ii in range(0, len(DATE_LIST)):
+                if ii < DATE_LIMIT and not validVote and x.find(NCAP_DEfINES[ii+1]) != -1:
+                    VOTES[id][ii] += 1
                     validVote = True
-            
             print(nickname + " voted for:")
             for ii in VOTES[id]:
                 print(ii)
@@ -387,36 +463,80 @@ async def on_message(message):
                 gameVotes = []
                 for ii in range(0, len(GAME_LIST)):
                     gameVotes.append(0)
-                x = message.content.encode("ascii", 'namereplace').decode('utf-8')
+                x = message.content.encode("ascii", 'namereplace').decode('utf-8') 
                 for ii in range(1, len(NCAP_DEfINES)):
-                    if x.find(NCAP_DEfINES[ii]) != -1:
-                        gameVotes[ii] += 1
+                    if ii < len(gameVotes)+1 and x.find(NCAP_DEfINES[ii]) != -1:
+                        gameVotes[ii-1] += 1
                         validVote = True
                 # check that the vote is a valid response
                 if validVote:
                     DONE_VOTING[id] = True
-                    print('Done VOTING STATUS: ' + str(DONE_VOTING[id]))
-                    await message.channel.send("Good god, it's about time! Nonetheless, we will acknowledge your vote, Sir " + nickname + "!\n" +
+                    await message.channel.send("Good gods, it's about time! Nonetheless, we will acknowledge your vote, Sir " + nickname + "!\n" +
                                             "I'll be sure to inform you when the others are ready to ride out!")
                     for ii in DONE_VOTING:
                         if DONE_VOTING[ii] == False:
-                            STATE = state.NONE
-                            # All players have finished voting, sounds the warhorns!
-                            FINAL_GAME = getFinalGame(GAME_LIST, gameVotes)
-                            await message.channel.send("HUZZAH!\nOur game has been selected at last!\n" +
-                                                    "We will be playing **" + FINAL_GAME + "** on the date of **" + FINAL_DATE + "**")
-                            # log the results
-                            log(FINAL_GAME, FINAL_DATE, GAME_LIST)
                             return
+                    # All players have finished voting, sounds the warhorns!
+                    STATE = state.NONE
+                    for ii in gameVotes:
+                        print(ii)
+                    FINAL_GAME = getFinalGame(GAME_LIST, gameVotes)
+                    await message.channel.send("@everyone :crossed_swords: HUZZAH! :crossed_swords:\nOur game has been selected at last!\n" +
+                                            "We will be playing **" + FINAL_GAME + "** on the date of **" + FINAL_DATE + "**\n:shield:To arms!:dagger:")
+                    # log the results
+                    log(FINAL_GAME, FINAL_DATE, GAME_LIST)
+                    STATE = state.VETO
+                    return
                 else:
-                    print(message.content)
                     await message.channel.send("I'm terribly sorry " + nickname + ", but that's not a valid option... \n" +
                         "Why don't you give it another shot?\n" + 
                         "Make sure to use your emoji might :wink:\ni.e. !vote :one: :two: or :three: etc.")
+    elif STATE == state.VETO:
+        if message.content.find("!veto") != -1:
+            if id not in REROLL_VOTERS:
+                REROLL_VOTERS[id] = True
+                print(client.get_user(id).display_name + ' has vetoed!')
+                await message.channel.send("Sir " + nickname + " has vetoed " + FINAL_GAME + "!")
+                print('veto percent: ' + str(len(REROLL_VOTERS) / TOTAL_PLAYERS))
+                if len(REROLL_VOTERS) >= math.floor(TOTAL_PLAYERS / 2.0):
+                    await message.channel.send(":dagger::boom::goat: @everyone [VETO SUCCEEDED]\nThe will of the gods has wavered!:interrobang:\n" +
+                                            "The roundtable will now propose a new vote...")
+                    # veto succeeded, repeat the process...
+                    # TODO: ensure all necessary variables are reset 
+                    await message.channel.send('@everyone The selected Game Night will be: **' + FINAL_DATE + '**' )
+                    matrix, ignoreList, totalGames, useEveryone = loadBallotInfo()
+                    playerList = createPlayerList(VOTES)
+                    TOTAL_PLAYERS = len(playerList)
+                    GAME_LIST = generateBallot(matrix, ignoreList, totalGames, useEveryone, playerList)
+                    print('FINISHED REROLL, STARTING NEW POLL...')
+                    await message.channel.send('@everyone The gods have spoken! Again...\nBelow are your **new** glorious game choices:\n' + 
+                                                '[ *Remember* - you may only vote for 1 game using :one:, :two:, :three:, etc. ]')
+                    botStr = ''
+                    for ii in range(0, len(GAME_LIST)):
+                        print(GAME_LIST[ii])
+                        botStr += '{0} - '.format(EMOJI_TEXT[ii]) + GAME_LIST[ii] + "\n"
+                    # post each option that they can vote for
+                    await message.channel.send(botStr)
+
+                    print('GAME_LIST[0]: ' + str(GAME_LIST[0]))
+
+                    if len(GAME_LIST) <= 1: # only 1 game on the ballot, skip voting
+                        FINAL_GAME = GAME_LIST[0]
+                        await message.channel.send("@everyone :crossed_swords: HUZZAH! :crossed_swords:\nOur game has been selected at last!\n" +
+                                            "We will be playing **" + FINAL_GAME + "** on the date of **" + FINAL_DATE + "**\n:shield: To arms! :dagger:")
+                        # log the results
+                        log(FINAL_GAME, FINAL_DATE, GAME_LIST)
+                        STATE = state.VETO
+                    else: # more than 1 game on ballot, go to reroll
+                        STATE = state.REROLLING
+
+                    print('FINISHED VETO, STARTING REROLL...')
+            else:
+                await message.channel.send("Stand down! :dagger: You have already cast your Veto right!")
     elif STATE == state.NONE:
         if message.content.find("!vote") != -1:
-            await message.channel.send("My apologies good Sir, but the Great Coordinator has not yet given orders to march...\n" +
-                    "If you feel there is an error, contact the Coordinator directly to rally a Saracen-scorching party!\n")
+            await message.channel.send("My apologies good Sir, but the Great Coordinator has already given marching orders...\n" +
+                    "If you feel there is an error, you can try !veto to reroll the selected game or contact the Coordinator ({0}) directly to rally a Saracen-scorching party!\n".format(client.get_user(CDNTR_ID)))
 
 client.run(token)
 

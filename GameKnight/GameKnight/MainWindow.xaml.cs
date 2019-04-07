@@ -103,7 +103,7 @@ namespace GameKnight
             Process p = new Process();
             // Redirect the output stream of the child process.
             p.StartInfo.UseShellExecute = true;
-            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.RedirectStandardOutput = false;
             p.StartInfo.FileName = "CMD.exe";
             p.StartInfo.Arguments = "/c " + cmd;
             p.Start();
