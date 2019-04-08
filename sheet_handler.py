@@ -30,8 +30,10 @@ def insertNewGame(newGame, sheet):
     
 def updateData(sheet, data_path):
     data = {}
-    data['games'] = []
-    data['users'] = []
+    data['MATRIX'] = {}
+    data['IGNORE_LIST'] = []
+    data['TOTAL_GAMES'] = sheet.col_count-1
+    data['EVERYONE'] = True
     matrix = []
     rows = sheet.row_count
     
@@ -49,7 +51,7 @@ def updateData(sheet, data_path):
         os.remove(data_path)
     
     with open(data_path, 'w') as outfile:
-        json.dump(matrix, outfile)
+        json.dump(data, outfile)
 
 def getSheet(secret_path):
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -60,8 +62,9 @@ def getSheet(secret_path):
     return sheet
 
 if __name__ == "__main__":
-    sheet = getSheet(os.getcwd() + "\client_secret.json")
-    data_path = os.getcwd() + "\data.json"
+    PATH = os.getcwd()
+    sheet = getSheet(PATH + "\client_secret.json")
+    data_path = os.getcwd() + "\ballot_info.json"
     
     if DIRECTIVE == 1: # insert a new user into the google sheet
         insertNewUser(sys.argv[2], sheet)

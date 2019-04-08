@@ -9,7 +9,8 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "none"
+            "console": "none",
+            "args": [ "2", "test_user_id" ]
         },
         {
             "name": "Python: Remote Attach",

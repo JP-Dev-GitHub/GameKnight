@@ -62,11 +62,51 @@ namespace GameKnight
 
         // ----------------------------------------------------------- Implementation ----------------------------------------------------------- //
 
+        private bool CheckForDuplicate(string itemName, bool checkGame)
+        {
+            // refresh JSON data
+            DataStore newData = LoadJson(PATH + @"data.json");
+
+            // check if the game is already on the list
+            if (checkGame)
+            {
+                List<string> gameList = newData.games;
+                for (int i  = 0; i < gameList.Count; ++i)
+                {
+                    if(gameList.Contains(itemName))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            else // were checking for a user
+            {
+                List<string> userList = newData.users;
+                for (int i = 0; i < userList.Count; ++i)
+                {
+                    if (userList.Contains(itemName))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
         private void AddNewGame(object sender, RoutedEventArgs e)
         {
-            string newGameName = Interaction.InputBox("Enter new game name: ", "Add New Game", "-", -1, -1);
+            string newGameName = Interaction.InputBox("Enter the name of a new game that you want to add to the sheet: ", "Add New Game", "New Game Title Here", -1, -1);
             try
             {
+                if(CheckForDuplicate(newGameName, true))
+                {
+                    MessageBox.Show("Game: " + newGameName + " already exists in the spreadsheet!");
+                    return;
+                }
+
                 string cmd = "python " + PATH + "sheet_handler.py " + ADD_GAME_DIRECTIVE + " " + newGameName;
 
                 Process p = new Process();
@@ -95,22 +135,35 @@ namespace GameKnight
 
         private void AddNewUser(object sender, RoutedEventArgs e)
         {
-            string newUser = "sam";
-            string cmd = "python " + PATH + "sheet_handler.py " + ADD_USER_DIRECTIVE + " " + newUser;
-            //cmd = "python test.py";
-            
-            // Start the child process.
-            Process p = new Process();
-            // Redirect the output stream of the child process.
-            p.StartInfo.UseShellExecute = true;
-            p.StartInfo.RedirectStandardOutput = false;
-            p.StartInfo.FileName = "CMD.exe";
-            p.StartInfo.Arguments = "/c " + cmd;
-            p.Start();
+            string newUserID = Interaction.InputBox("Enable Developer mode in Discord.\n\nRight-click the desired profile and click \"Copy ID\" " 
+                + "at the bottom.\n\nPaste the ID here: ", "Add New User ID", "Paste the Discord ID here", -1, -1);
 
-            string output = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-            MessageBox.Show(output);
+            if (CheckForDuplicate(newUserID, true))
+            {
+                MessageBox.Show("ID: " + newUserID + " already exists in the spreadsheet!");
+                return;
+            }
+
+            try
+            {
+                string cmd = "python " + PATH + "sheet_handler.py " + ADD_USER_DIRECTIVE + " " + newUserID;
+
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = "CMD.exe";
+                p.StartInfo.Arguments = "/c " + cmd;
+                p.Start();
+
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                MessageBox.Show(output);
+                MessageBox.Show("Successfully added " + newUserID);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error! Could not add " + newUserID + ":\n" + e);
+            }
         }
 
         private void IncludeEveryone_Checked(object sender, RoutedEventArgs e)
@@ -161,7 +214,6 @@ namespace GameKnight
             foreach (var item in data.games)
             {
                 Console.WriteLine(item);
-                
             }
 
             return data;
