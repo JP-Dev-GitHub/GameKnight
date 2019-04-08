@@ -5,7 +5,8 @@ import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-DIRECTIVE = int(sys.argv[1]) 
+DIRECTIVE = int(sys.argv[1])
+PATH = ''
 
 def insertNewUser(newUser, sheet):
     cols = sheet.col_count
@@ -27,31 +28,41 @@ def insertNewGame(newGame, sheet):
     for cell in blank_cells:
         cell.value = 0
     sheet.update_cells(blank_cells)
-    
+
+# updates the matrix only
 def updateData(sheet, data_path):
-    data = {}
-    data['MATRIX'] = {}
-    data['IGNORE_LIST'] = []
-    data['TOTAL_GAMES'] = sheet.col_count-1
-    data['EVERYONE'] = True
     matrix = []
     rows = sheet.row_count
-    
+
+    # check if we have older data to work with
+    dataExists = os.path.isfile(data_path)
+    if dataExists:
+        with open(data_path, 'r') as old:
+            new_data = json.load(old)
+            print('PRINTING OLD MATRIX: ')
+            print(new_data['MATRIX'])
+    else:
+        print('WARNING: no file found at ' + data_path)
+        return
+
     for ii in range(0, rows-1):
         matrix.append([])
 
-    # establish matrix
+    # GENERATE MATRIX
     matrix = sheet.get_all_values()
-    for ii in matrix:
-        print (ii) # print rows
-    
-    dataExists = os.path.isfile(data_path)
-    
-    if dataExists:
-        os.remove(data_path)
-    
+    # GET GAME LIST
+    new_data['MASTER_GAME_LIST'] = matrix[0][1:]
+
+    for ii in matrix[1:]:
+        c = ii[1:]
+        s = ii[0][:ii[0].find(':')]
+        new_data['MATRIX'][ii[0]] = c # get all users ids and use them as keys
+
+    # delete old json data
+    os.remove(data_path)
+    # replace the old data with new data
     with open(data_path, 'w') as outfile:
-        json.dump(data, outfile)
+        json.dump(new_data, outfile)
 
 def getSheet(secret_path):
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -63,8 +74,9 @@ def getSheet(secret_path):
 
 if __name__ == "__main__":
     PATH = os.getcwd()
-    sheet = getSheet(PATH + "\client_secret.json")
-    data_path = os.getcwd() + "\ballot_info.json"
+    PATH = PATH[:PATH.find('GameKnight')+10]
+    sheet = getSheet(PATH + "\\client_secret.json")
+    data_path = os.getcwd() + "\\ballot_info.json"
     
     if DIRECTIVE == 1: # insert a new user into the google sheet
         insertNewUser(sys.argv[2], sheet)

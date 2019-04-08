@@ -144,14 +144,21 @@ def loadBallotInfo():
     fp = PATH + "ballot_info.json"
     with open(fp, "r") as f:
         data = json.load(f)
-        info = data['info'][0]
-        matrix = info['MATRIX']
+        matrix = data['MATRIX']
         print(matrix)
-        ignoreList = info['IGNORE_LIST']
-        totalGames = info['TOTAL_GAMES']
-        useEveryone = info['EVERYONE']
-    
-    return matrix, ignoreList, totalGames, useEveryone
+        ignoreList = data['IGNORE_LIST']
+        totalGames = data['TOTAL_GAMES']
+        useEveryone = data['EVERYONE']
+
+        playerList = {}
+        newMatrix = {}
+        for ii in matrix:
+            key = ii
+            newKey = key[key.find(':')+1:]
+            newMatrix[newKey] = matrix[ii]
+            playerList[newKey] = key[:key.find(':')]
+
+    return newMatrix, playerList, ignoreList, totalGames, useEveryone
 
 
 # takes in a dictionary of votes
@@ -164,6 +171,7 @@ def getGameDate(votes):
             voteTally[i] += votes[key][i]
             #print('ind: ' + str(i) + ', val: ' + str(voteTally[i]))
     m = 0
+    index = 0
     for ii in range(0, len(voteTally)):
         if voteTally[ii] > m:
             m = voteTally[ii]
@@ -178,8 +186,7 @@ def initGameList(matrix, ignoreList):
     fp = PATH + "ballot_info.json"
     with open(fp, "r") as f:
         data = json.load(f)
-        info = data['info'][0]
-        GAME_LIST = info['MASTER_GAME_LIST']
+        GAME_LIST = data['MASTER_GAME_LIST']
 
     x = str(next(iter(matrix)))
     if len(GAME_LIST) != len(matrix[x]):
@@ -412,7 +419,7 @@ async def on_message(message):
                 await message.channel.send('The Almighty Coordinator has closed the RSVP poll!')
                 await message.channel.send(':trumpet: @everyone :trumpet: The selected Game Night will be: **' + FINAL_DATE + '**' )
 
-                matrix, ignoreList, totalGames, useEveryone = loadBallotInfo()
+                matrix, playerList, ignoreList, totalGames, useEveryone = loadBallotInfo()
                 playerList = createPlayerList(VOTES)
                 TOTAL_PLAYERS = len(playerList)
                 GAME_LIST = generateBallot(matrix, ignoreList, totalGames, useEveryone, playerList)
@@ -520,7 +527,7 @@ async def on_message(message):
                     # veto succeeded, repeat the process...
                     # TODO: ensure all necessary variables are reset 
                     await message.channel.send('@everyone The selected Game Night will be: **' + FINAL_DATE + '**' )
-                    matrix, ignoreList, totalGames, useEveryone = loadBallotInfo()
+                    matrix, playerList, ignoreList, totalGames, useEveryone = loadBallotInfo()
                     playerList = createPlayerList(VOTES)
                     TOTAL_PLAYERS = len(playerList)
                     GAME_LIST = generateBallot(matrix, ignoreList, totalGames, useEveryone, playerList)

@@ -56,6 +56,7 @@ namespace GameKnight
             InitializeComponent();
             PATH = Directory.GetCurrentDirectory();
             PATH = PATH.Substring(0, PATH.IndexOf("GameKnight") + 10) + "\\";
+            Console.WriteLine(PATH);
             UpdateJsonData();
             data = LoadJson(PATH + "data.json");
         }
@@ -86,6 +87,9 @@ namespace GameKnight
                 List<string> userList = newData.users;
                 for (int i = 0; i < userList.Count; ++i)
                 {
+                    Console.WriteLine("Looking for: " + itemName);
+                    Console.WriteLine("against: " + userList[i]);
+
                     if (userList.Contains(itemName))
                     {
                         return true;
@@ -123,7 +127,7 @@ namespace GameKnight
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Error! Could not add " + newGameName + ":\n" + e);
+                MessageBox.Show("Error! Could not add " + newGameName + ":\n" + ex);
             }
         }
 
@@ -131,14 +135,50 @@ namespace GameKnight
         {
             Console.WriteLine("oh boy rick! ");
             MyPopup.IsOpen = true;
+
+            // Fetch all config data
+            //UpdateJsonData();
+            //SaveJson(PATH + @"\ballot_info.json");
+
+            // Launch python bot
+            try
+            {
+                string cmd = "python " + PATH + @"DiscordBot\gk_bot.py ";
+
+                Console.WriteLine(cmd);
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = true;
+                p.StartInfo.RedirectStandardOutput = false;
+                p.StartInfo.FileName = "CMD.exe";
+                p.StartInfo.Arguments = "/c " + cmd;
+                p.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error! Could not run GK BOT!\n" + ex);
+            }
         }
 
         private void AddNewUser(object sender, RoutedEventArgs e)
         {
-            string newUserID = Interaction.InputBox("Enable Developer mode in Discord.\n\nRight-click the desired profile and click \"Copy ID\" " 
+            string newUserNickname = Interaction.InputBox("Enter your first name or an alias that you and your friends will recognize:", "Add New Nickname", "Enter your name/nickname.", -1, -1);
+
+            if(newUserNickname == "")
+            {
+                Console.WriteLine(newUserNickname);
+                return;
+            }
+
+            string newUserID = Interaction.InputBox("Now enter your Discord ID.\n\nEnable Developer mode in Discord.\n\nRight-click the desired profile and click \"Copy ID\" " 
                 + "at the bottom.\n\nPaste the ID here: ", "Add New User ID", "Paste the Discord ID here", -1, -1);
 
-            if (CheckForDuplicate(newUserID, true))
+            if (newUserID == "")
+            {
+                Console.WriteLine(newUserID);
+                return;
+            }
+
+            if (CheckForDuplicate(newUserID, false))
             {
                 MessageBox.Show("ID: " + newUserID + " already exists in the spreadsheet!");
                 return;
@@ -146,7 +186,7 @@ namespace GameKnight
 
             try
             {
-                string cmd = "python " + PATH + "sheet_handler.py " + ADD_USER_DIRECTIVE + " " + newUserID;
+                string cmd = "python " + PATH + "sheet_handler.py " + ADD_USER_DIRECTIVE + " " + newUserNickname + ':' + newUserID;
 
                 Process p = new Process();
                 p.StartInfo.UseShellExecute = false;
@@ -162,7 +202,7 @@ namespace GameKnight
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error! Could not add " + newUserID + ":\n" + e);
+                MessageBox.Show("Error! Could not add " + newUserID + ":\n" + ex);
             }
         }
 
@@ -217,6 +257,12 @@ namespace GameKnight
             }
 
             return data;
+        }
+
+        public void SaveJson(string fp)
+        {
+            Console.WriteLine("Saving JSON data...");
+
         }
 
         public void UpdateJsonData()
