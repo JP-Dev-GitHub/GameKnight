@@ -5,8 +5,7 @@ import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-DIRECTIVE = int(sys.argv[1])
-PATH = ''
+DIRECTIVE = int(sys.argv[1]) 
 
 def insertNewUser(newUser, sheet):
     cols = sheet.col_count
@@ -29,40 +28,36 @@ def insertNewGame(newGame, sheet):
         cell.value = 0
     sheet.update_cells(blank_cells)
 
-# updates the matrix only
+def serializeBallotInfo():
+    pass
+
+# only updates the MATRIX and MASTER_GAME_LIST in JSON data
 def updateData(sheet, data_path):
-    matrix = []
-    rows = sheet.row_count
-
-    # check if we have older data to work with
     dataExists = os.path.isfile(data_path)
+    data = {}
+    oldData = {}
     if dataExists:
-        with open(data_path, 'r') as old:
-            new_data = json.load(old)
-            print('PRINTING OLD MATRIX: ')
-            print(new_data['MATRIX'])
-    else:
-        print('WARNING: no file found at ' + data_path)
-        return
+        with open(data_path, 'r') as f:
+            oldData = json.load(f)
+            for key in oldData:
+                data[key] = oldData[key]
+    data['MATRIX'] = {}
+    data['MASTER_GAME_LIST'] = []
 
-    for ii in range(0, rows-1):
-        matrix.append([])
-
-    # GENERATE MATRIX
+    # establish matrix
+    matrix = []
     matrix = sheet.get_all_values()
-    # GET GAME LIST
-    new_data['MASTER_GAME_LIST'] = matrix[0][1:]
-
+    for ii in matrix[0][1:]:
+        data['MASTER_GAME_LIST'].append(ii)
     for ii in matrix[1:]:
-        c = ii[1:]
-        s = ii[0][:ii[0].find(':')]
-        new_data['MATRIX'][ii[0]] = c # get all users ids and use them as keys
-
-    # delete old json data
-    os.remove(data_path)
-    # replace the old data with new data
+        #print (ii) # print rows
+        data['MATRIX'][ii[0]] = ii[1:]
+    
+    if dataExists:
+        os.remove(data_path)
+    
     with open(data_path, 'w') as outfile:
-        json.dump(new_data, outfile)
+        json.dump(data, outfile)
 
 def getSheet(secret_path):
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -73,10 +68,11 @@ def getSheet(secret_path):
     return sheet
 
 if __name__ == "__main__":
-    PATH = os.getcwd()
-    PATH = PATH[:PATH.find('GameKnight')+10]
+    global PATH
+    x = os.getcwd()
+    PATH = x[:x.find('GameKnight')+10] + '\\'
     sheet = getSheet(PATH + "\\client_secret.json")
-    data_path = os.getcwd() + "\\ballot_info.json"
+    data_path = PATH + "\\ballot_info.json"
     
     if DIRECTIVE == 1: # insert a new user into the google sheet
         insertNewUser(sys.argv[2], sheet)
@@ -84,5 +80,12 @@ if __name__ == "__main__":
     elif DIRECTIVE == 2: # insert a new game into the google sheet
         insertNewGame(sys.argv[2], sheet)
         updateData(sheet, data_path) # make sure to update the stored data after its been altered
+    elif DIRECTIVE == 3: # serialize data from c# application
+        serializeBallotInfo()
     else:
-        updateData(sheet, data_path)
+        with open(PATH + "test.json", 'r') as f:
+            oldData = json.load(f)
+            for ii in oldData['MATRIX']:
+                print(ii)
+            print("done")
+        #updateData(sheet, data_path)

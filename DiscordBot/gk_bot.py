@@ -148,7 +148,7 @@ def loadBallotInfo():
         print(matrix)
         ignoreList = data['IGNORE_LIST']
         totalGames = data['TOTAL_GAMES']
-        useEveryone = data['EVERYONE']
+        useEveryone = True if data['EVERYONE'].capitalize() == 'True' else False
 
         playerList = {}
         newMatrix = {}

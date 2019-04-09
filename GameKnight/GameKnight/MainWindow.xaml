@@ -11,15 +11,25 @@
     </Window.Resources>
     <Grid Background="#222222">
         <!-- Buttons arranged vertically inside a StackPanel. -->
-        <StackPanel HorizontalAlignment="Left" Margin="293,56,0,208" Width="212">
-            <Button Click="AddNewGame" Background="#8F5CE1" Foreground="#f0ede8" FontSize="18" FontWeight="Bold" Height="30">Add New Game </Button>
-            <Button Click="AddNewUser" Background="#8F5CE1" Foreground="#f0ede8" FontSize="18" FontWeight="Bold" Height="30">Add New User</Button>
+        <StackPanel HorizontalAlignment="Left" Margin="293,56,0,109.667" Width="212">
+            <Button Name="NewGame_btn" Click="AddNewGame" Background="#8F5CE1" Foreground="#f0ede8" FontSize="18" FontWeight="Bold" Height="30"
+                    ToolTip="Add a new game to the google sheet. Default for all users is 0 (i.e. no one owns the game)">Add New Game</Button>
+            <Button Name="NewUser_btn" Click="AddNewUser" Background="#8F5CE1" Foreground="#f0ede8" FontSize="18" FontWeight="Bold" Height="30"
+                    ToolTip="Add a new user to the google sheet. This requires a nickname and Discord ID.">Add New User</Button>
+            <Button Name="CheckOwnership_btn" Click="CheckGame" Background="#8F5CE1" Foreground="#f0ede8" FontSize="18" FontWeight="Bold" Height="30"
+                    ToolTip="Check who owns a specified game.">Check Game Ownership</Button>
             <StackPanel.Resources>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Margin" Value="{StaticResource tbMargin}"/>
                 </Style>
             </StackPanel.Resources>
         </StackPanel>
+        <Button Click="Refresh_Click" Margin="237,43,500.333,317.667" Width="56" Height="56" 
+                ToolTip="Refresh - Sync any manual changes you've made to the Google Sheet">
+            <Button.Background>
+                <ImageBrush ImageSource="Images/temp_sync.png"/>
+            </Button.Background>
+        </Button>
         <StackPanel Margin="628,10,10,279">
             <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold">Application Options</Label>
             <CheckBox Name="IncludeEveryone_chbx" Foreground="#f0ede8" FontWeight="Bold" ToolTip="Check this box if you want to ensure everyone owns the games that are put on the ballot." 
@@ -35,7 +45,7 @@
                 <ComboBoxItem IsSelected="False" Content="6" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
             </ComboBox>
         </StackPanel>
-        <Button Click="LetsPlay" Margin="304,333,287,19" Content="Let's Play!" FontSize="30" FontWeight="Bold" Foreground="#f0ede8" Background="#DC951F"/> 
+        <Button Click="LetsPlay" Margin="304,333,287,19" Content="Let's Play!" FontSize="30" FontWeight="Bold" Foreground="#f0ede8" Background="#DC951F"/>
         <Popup Name="MyPopup"
                Placement="Mouse"
                HorizontalOffset="-100"

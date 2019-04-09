@@ -100,10 +100,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="GameKnight_CloseUp.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="GameKnight_Logo.png" />
+    <Resource Include="Images\GameKnight_CloseUp.png" />
+    <Resource Include="Images\GameKnight_Logo.png" />
+    <Resource Include="Images\temp_sync.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

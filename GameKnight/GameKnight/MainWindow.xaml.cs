@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.ComponentModel;
 using Microsoft.VisualBasic;
@@ -24,6 +26,7 @@ namespace GameKnight
     public class DataStore
     {
         public List<string> users;
+        public List<string> nicknames;
         public List<string> games;
         public List<List<int>> matrix;
     }
@@ -38,12 +41,14 @@ namespace GameKnight
     /// </summary>
     public partial class MainWindow : Window
     {
-        // Global Information
+        // DEFINES
         public const int UPDATE_DIRECTIVE = 0;
         public const int ADD_USER_DIRECTIVE = 1;
         public const int ADD_GAME_DIRECTIVE = 2;
-        public string PATH = @"C:\Users\Joshx\Desktop\GameKnight\";
+        public const int DISCORD_ID_LENGTH = 18;
+        public string PATH = @"C:\path\to\GameKnight\";
 
+        // Global Information
         public dynamic array;
         public DataStore data;
 
@@ -57,43 +62,47 @@ namespace GameKnight
             PATH = Directory.GetCurrentDirectory();
             PATH = PATH.Substring(0, PATH.IndexOf("GameKnight") + 10) + "\\";
             Console.WriteLine(PATH);
+            // update JSON Matrix data
             UpdateJsonData();
-            data = LoadJson(PATH + "data.json");
         }
 
         // ----------------------------------------------------------- Implementation ----------------------------------------------------------- //
+        private void Refresh_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateJsonData();
+            //foreach(var item in data.games)
+            //{
+            //    Console.WriteLine(item);
+            //}
+            MessageBox.Show("Refreshed!");
+        }
 
         private bool CheckForDuplicate(string itemName, bool checkGame)
         {
-            // refresh JSON data
-            DataStore newData = LoadJson(PATH + @"data.json");
+            itemName = itemName.ToLower().Replace(" ", "");
 
             // check if the game is already on the list
             if (checkGame)
             {
-                List<string> gameList = newData.games;
+                List<string> gameList = data.games;
                 for (int i  = 0; i < gameList.Count; ++i)
                 {
-                    if(gameList.Contains(itemName))
-                    {
+                    //Console.WriteLine("Comparing: " + itemName + " with: " + gameList[i].ToLower().Replace(" ", ""));
+                    if (itemName == gameList[i].ToLower().Replace(" ", ""))
                         return true;
-                    }
                 }
 
                 return false;
             }
             else // were checking for a user
             {
-                List<string> userList = newData.users;
+                List<string> userList = data.users;
                 for (int i = 0; i < userList.Count; ++i)
                 {
-                    Console.WriteLine("Looking for: " + itemName);
-                    Console.WriteLine("against: " + userList[i]);
-
-                    if (userList.Contains(itemName))
-                    {
+                    //Console.WriteLine("Looking for: " + itemName);
+                    //Console.WriteLine("against: " + userList[i]);
+                    if (itemName == userList[i].ToLower().Replace(" ", ""))
                         return true;
-                    }
                 }
 
                 return false;
@@ -102,87 +111,84 @@ namespace GameKnight
 
         private void AddNewGame(object sender, RoutedEventArgs e)
         {
-            string newGameName = Interaction.InputBox("Enter the name of a new game that you want to add to the sheet: ", "Add New Game", "New Game Title Here", -1, -1);
+            string startString = "New Game Title Here";
+
+            string newGameName = Interaction.InputBox("Enter the name of a new game that you want to add to the sheet: ", "Add New Game", startString, -1, -1);
+
+            // ensure an entry was made
+            if (newGameName == "" || newGameName == startString)
+                return;
+
             try
             {
-                if(CheckForDuplicate(newGameName, true))
+                if (CheckForDuplicate(newGameName, true))
                 {
                     MessageBox.Show("Game: " + newGameName + " already exists in the spreadsheet!");
                     return;
                 }
 
+                NewGame_btn.IsEnabled = false;
+
                 string cmd = "python " + PATH + "sheet_handler.py " + ADD_GAME_DIRECTIVE + " " + newGameName;
 
                 Process p = new Process();
                 p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
                 p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.CreateNoWindow = true;
                 p.StartInfo.FileName = "CMD.exe";
                 p.StartInfo.Arguments = "/c " + cmd;
                 p.Start();
 
                 string output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
-                MessageBox.Show(output);
-                MessageBox.Show("Successfully added");
+                UpdateJsonData();
+                data = LoadJsonDataStore(PATH + "ballot_info.json");
+                //Console.WriteLine(output);
+                MessageBox.Show("Successfully added " + newGameName);
+            
             }
             catch(Exception ex)
             {
                 MessageBox.Show("Error! Could not add " + newGameName + ":\n" + ex);
             }
-        }
 
-        private void LetsPlay(object sender, RoutedEventArgs e)
-        {
-            Console.WriteLine("oh boy rick! ");
-            MyPopup.IsOpen = true;
-
-            // Fetch all config data
-            //UpdateJsonData();
-            //SaveJson(PATH + @"\ballot_info.json");
-
-            // Launch python bot
-            try
-            {
-                string cmd = "python " + PATH + @"DiscordBot\gk_bot.py ";
-
-                Console.WriteLine(cmd);
-                Process p = new Process();
-                p.StartInfo.UseShellExecute = true;
-                p.StartInfo.RedirectStandardOutput = false;
-                p.StartInfo.FileName = "CMD.exe";
-                p.StartInfo.Arguments = "/c " + cmd;
-                p.Start();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error! Could not run GK BOT!\n" + ex);
-            }
+            NewGame_btn.IsEnabled = true;
         }
 
         private void AddNewUser(object sender, RoutedEventArgs e)
         {
-            string newUserNickname = Interaction.InputBox("Enter your first name or an alias that you and your friends will recognize:", "Add New Nickname", "Enter your name/nickname.", -1, -1);
+            string startString = "Enter your name/nickname.";
 
-            if(newUserNickname == "")
+            string newUserNickname = Interaction.InputBox("Enter your first name or an alias that you and your friends will recognize:", "Add New Nickname", startString, -1, -1);
+
+            // ensure an entry was made
+            if (newUserNickname == "" || newUserNickname == startString)
+                return;
+
+            startString = "Paste the Discord ID here";
+            string newUserID = Interaction.InputBox("Now enter your 18-digit Discord ID.\n\nEnable Developer mode in Discord.\n\nRight-click the desired profile and click \"Copy ID\" " 
+                + "at the bottom.\n\nPaste the ID here: ", "Add New User ID", startString, -1, -1);
+
+            // ensure an entry was made
+            if (newUserID == "" || newUserID == startString)
+                return;
+
+            // looking for non-18-digit id
+            if (newUserID.Length != DISCORD_ID_LENGTH)
             {
-                Console.WriteLine(newUserNickname);
+                MessageBox.Show("Incorrect ID length!\n\nDiscord IDs are exactly " + DISCORD_ID_LENGTH + "-digits long.");
                 return;
             }
 
-            string newUserID = Interaction.InputBox("Now enter your Discord ID.\n\nEnable Developer mode in Discord.\n\nRight-click the desired profile and click \"Copy ID\" " 
-                + "at the bottom.\n\nPaste the ID here: ", "Add New User ID", "Paste the Discord ID here", -1, -1);
-
-            if (newUserID == "")
-            {
-                Console.WriteLine(newUserID);
-                return;
-            }
-
-            if (CheckForDuplicate(newUserID, false))
+            // check duplicates
+            if(CheckForDuplicate(newUserID, false))
             {
                 MessageBox.Show("ID: " + newUserID + " already exists in the spreadsheet!");
                 return;
             }
+
+            NewUser_btn.IsEnabled = false;
 
             try
             {
@@ -190,20 +196,54 @@ namespace GameKnight
 
                 Process p = new Process();
                 p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
                 p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.CreateNoWindow = true;
                 p.StartInfo.FileName = "CMD.exe";
                 p.StartInfo.Arguments = "/c " + cmd;
                 p.Start();
 
                 string output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
-                MessageBox.Show(output);
-                MessageBox.Show("Successfully added " + newUserID);
+                UpdateJsonData();
+                //Console.WriteLine(output);
+                MessageBox.Show("Successfully added " + newUserNickname + ":" + newUserID);
+                NewUser_btn.IsEnabled = true;
             }
             catch (Exception ex)
             {
+                NewUser_btn.IsEnabled = true;
                 MessageBox.Show("Error! Could not add " + newUserID + ":\n" + ex);
             }
+        }
+
+        private void LetsPlay(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("oh boy rick! Lets play!");
+            MyPopup.IsOpen = true;
+
+            // Fetch all config data
+            UpdateJsonData();
+            //TODO: replace with ballot_info
+            SaveJson(PATH + @"test.json");
+
+            // Launch python bot
+            //try
+            //{
+            //    string cmd = "python " + PATH + @"DiscordBot\gk_bot.py ";
+
+            //    Console.WriteLine(cmd);
+            //    Process p = new Process();
+            //    p.StartInfo.UseShellExecute = true;
+            //    p.StartInfo.RedirectStandardOutput = false;
+            //    p.StartInfo.FileName = "CMD.exe";
+            //    p.StartInfo.Arguments = "/c " + cmd;
+            //    p.Start();
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show("Error! Could not run GK BOT!\n" + ex);
+            //}
         }
 
         private void IncludeEveryone_Checked(object sender, RoutedEventArgs e)
@@ -226,48 +266,141 @@ namespace GameKnight
                 pBallotNum = 2; // default
         }
 
-        public DataStore LoadJson(string fp)
+        private void CheckGame(object sender, RoutedEventArgs e)
+        {
+            string gameName = Interaction.InputBox("Enter the name of the game you want to check and click \"Ok\".\n\n", "Check Game Ownership", "Game name here", -1, -1);
+
+            if(gameName.Length <= 1)
+            {
+                MessageBox.Show("Game not recognized! Please enter a valid game title.");
+                return;
+            }
+            
+            List<string> games = data.games;
+            List<string> users = data.users;
+            List<string> nicknames = data.nicknames;
+            List<List<int>> matrix = data.matrix;
+            List<string> usersThatOwn = new List<string>();
+            List<string> usersDontOwn = new List<string>();
+            bool found = false;
+            int gameIndex = 0;
+
+            // Validate that the user entered an actual game name
+            foreach (string game in games)
+            {
+                if (game.Contains(gameName))
+                {
+                    found = true;
+                    Console.WriteLine("Index of game: " + gameIndex.ToString());
+                    break;
+                }
+                gameIndex++;   
+            }
+
+            if (!found)
+            {
+                MessageBox.Show("Game not recognized! Please enter a valid game title.");
+                return;
+            }
+
+            string msgStr = "These users own " + gameName + ":\n";
+            //Console.WriteLine("finding name: " + gameName);
+            for (int i = 0; i < games.Count(); ++i)
+            {
+                if (matrix[i][gameIndex] != 1)
+                {
+                    usersDontOwn.Add(nicknames[i]);
+                }
+                else
+                {
+                    usersThatOwn.Add(nicknames[i]);
+                    msgStr += nicknames[i] + "\n";
+                } 
+            }
+
+            msgStr += "\n\n\n\nThe following users do NOT own " + gameName + ":\n";
+
+            foreach (var user in usersDontOwn)
+            {
+                msgStr += user + "\n";
+            }
+            // TODO: Create actual popup response box
+            MessageBox.Show(msgStr);
+        }
+
+        // Gets currently stored DataStore (matrix, game list, users)
+        // and adds new variables to the JSON like:
+        // EVERYONE, TOTAL_GAMES, STATE, CHANNELS, GK_ROLE, and CDNTR_ROLE
+        public void SaveJson(string fp)
+        {
+            Console.WriteLine("Saving JSON data...");
+            UpdateJsonData();
+            //var newData = new Dictionary<string, List<object>> { { "Property", "foo" } };
+
+            dynamic x = File.ReadAllText(PATH + "ballot_info.json");
+            JObject jo = JObject.Parse(x);
+            Dictionary<string, List<int>> matrix = JsonConvert.DeserializeObject<Dictionary<string, List<int>>>(jo["MATRIX"].ToString());
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic["MATRIX"] = matrix;
+            var temp = JsonConvert.SerializeObject(dic);
+            //if (pUseBallot)
+            //    newData["TOTAL_GAMES"] = pBallotNum;
+            //else:
+            //    newData["TOTAL_GAMES"] = 1;
+            
+            //foreach (var item in matrix)
+            //{
+            //    //Aadam: 116797218316353537""
+            //    newJsonData += String.Format(@"""{0}"": {1}", item.Key, @"[""" + string.Join(@""", """, item.Value) + @"""], ");
+
+            //    ++index;
+            //}
+                
+            //Console.WriteLine("Saving: " + newJsonData);
+            //open file stream
+            using (StreamWriter file = File.CreateText(fp))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                //serialize object directly into file stream
+                serializer.Serialize(file, temp);
+            }
+
+            Console.WriteLine("Finished!");
+        }
+
+        public DataStore LoadJsonDataStore(string fp)
         {
             data = new DataStore();
-            
             Console.WriteLine("Reading JSON...");
-            using (StreamReader r = new StreamReader(fp))
+            dynamic x = File.ReadAllText(fp);
+            JObject jo = JObject.Parse(x);
+            // convert JToken data in JSON to usable types
+            data.games = JsonConvert.DeserializeObject<List<string>>(jo["MASTER_GAME_LIST"].ToString());
+
+            Dictionary<string, List<int>> matrix = JsonConvert.DeserializeObject<Dictionary<string, List<int>>>(jo["MATRIX"].ToString());
+            data.matrix = new List<List<int>>();
+            data.users = new List<string>();
+            data.nicknames = new List<string>();
+            foreach (var item in matrix)
             {
-                string json = r.ReadToEnd();
-                array = JsonConvert.DeserializeObject(json);
-            }
-
-            // convert to C# List of List of strings
-            array = array.ToObject<List<List<string>>>();
-
-            // add all users in sheet
-            data.games = array[0];
-
-            // add all users in sheet
-            data.users = new List<string>(array.Count);
-            for (int i = 0; i < array.Count; ++i)
-            {
-                data.users.Add(array[i][0]);
-            }
-
-
-            foreach (var item in data.games)
-            {
-                Console.WriteLine(item);
+                // only get the ID for our purposes
+                string s = item.Key.ToString();
+                // seperate the values of nickname:discord_id
+                data.nicknames.Add(s.Substring(0, s.IndexOf(':')));
+                data.users.Add(s.Substring(s.IndexOf(':') + 1));
+                data.matrix.Add(item.Value);
             }
 
             return data;
         }
 
-        public void SaveJson(string fp)
-        {
-            Console.WriteLine("Saving JSON data...");
-
-        }
-
+        // Calls a python script to update the JSON data's:
+        // Matrix, game list, and user list
         public void UpdateJsonData()
         {
+            Console.WriteLine("UPDATING JSON USING PYTHON...");
             string cmd = "python " + PATH + "sheet_handler.py " + UPDATE_DIRECTIVE;
+            Console.WriteLine(cmd);
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
@@ -275,6 +408,10 @@ namespace GameKnight
             startInfo.Arguments = "/C " + cmd;
             process.StartInfo = startInfo;
             process.Start();
+            process.WaitForExit();
+
+            // refresh global DataStore
+            data = LoadJsonDataStore(PATH + "ballot_info.json");
         }
     }
 }
