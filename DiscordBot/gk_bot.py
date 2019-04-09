@@ -30,9 +30,6 @@ GAME_LIST = ['kappa', 'hitler', 'leggo bible', 'gearsofwar', 'nak', 'crashbandic
 DATE_LIST = ['01/01 ~1pm', '01/02 ~2pm', '01/03 ~3pm' ]
 FINAL_DATE = ''
 FINAL_GAME = ''
-# VOTES = { "143128900036329473" : [ 0,0,0 ],
-#           "561291243179606061" : [ 0,0,0 ],
-#           "142461721875972096" : [ 0,0,0 ]}
 VOTES = {}
 DONE_VOTING = {}
 REROLL_VOTERS = {}
@@ -49,6 +46,18 @@ class state(IntFlag):
 STATE = state.NEW_POLL
 
 ################################   FUNCTIONS   ################################
+
+# REMOVE THIS
+fp = PATH + "test.json"
+if os.path.isfile(fp): # check if the config exists
+    with open(fp, "r") as f:
+        CONFIG = json.load(f)
+        d = CONFIG['MATRIX']
+        for ii in d:
+            print(ii)
+
+print('done')
+# REMOVE THIS
 
 # READ TOKEN
 def readToken():

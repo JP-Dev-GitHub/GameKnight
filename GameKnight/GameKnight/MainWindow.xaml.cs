@@ -339,30 +339,33 @@ namespace GameKnight
 
             dynamic x = File.ReadAllText(PATH + "ballot_info.json");
             JObject jo = JObject.Parse(x);
+
             Dictionary<string, List<int>> matrix = JsonConvert.DeserializeObject<Dictionary<string, List<int>>>(jo["MATRIX"].ToString());
             Dictionary<string, object> dic = new Dictionary<string, object>();
             dic["MATRIX"] = matrix;
-            var temp = JsonConvert.SerializeObject(dic);
-            //if (pUseBallot)
-            //    newData["TOTAL_GAMES"] = pBallotNum;
-            //else:
-            //    newData["TOTAL_GAMES"] = 1;
-            
-            //foreach (var item in matrix)
-            //{
-            //    //Aadam: 116797218316353537""
-            //    newJsonData += String.Format(@"""{0}"": {1}", item.Key, @"[""" + string.Join(@""", """, item.Value) + @"""], ");
+            foreach(var ii in matrix)
+                Console.WriteLine(ii);
+            var temp = JsonConvert.SerializeObject(dic, Formatting.None);
 
-            //    ++index;
-            //}
-                
-            //Console.WriteLine("Saving: " + newJsonData);
-            //open file stream
             using (StreamWriter file = File.CreateText(fp))
             {
                 JsonSerializer serializer = new JsonSerializer();
-                //serialize object directly into file stream
                 serializer.Serialize(file, temp);
+            }
+
+            var fs = File.Open(fp, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            var sr = new StreamReader(fs);
+            string line;
+
+            line = sr.ReadLine();
+            line = line.Remove(0,1);
+            line =  line.Replace(@"\", "");
+            fs.Close();
+
+            File.Delete(fp);
+            using (StreamWriter file = File.CreateText(fp))
+            {
+                file.WriteLine(line);
             }
 
             Console.WriteLine("Finished!");
