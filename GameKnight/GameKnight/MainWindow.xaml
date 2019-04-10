@@ -4,38 +4,45 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GameKnight"
+        ResizeMode="CanMinimize"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
-        <Thickness x:Key="tbMargin">0,20,0,0</Thickness>
+        <Thickness x:Key="tbMargin">0,30,0,0</Thickness>
     </Window.Resources>
     <Grid Background="#222222">
-        <StackPanel HorizontalAlignment="Left" Margin="293,56,0,109.667" Width="212">
-            <Button Name="NewGame_btn" Click="AddNewGame" Background="#8F5CE1" Foreground="#f0ede8" FontSize="18" FontWeight="Bold" Height="30"
+        <StackPanel HorizontalAlignment="Left" Margin="293,20,0,83" Width="212">
+            <!--old button color = FF8F5CE1-->
+            <Button Name="NewGame_btn" Click="AddNewGame" Background="#FF858585" Foreground="#FFDCD05F" FontSize="18" FontWeight="Bold" Height="30"
+                    Margin="0,0,0,0"
                     ToolTip="Add a new game to the google sheet. Default for all users is 0 (i.e. no one owns the game)">Add New Game</Button>
-            <Button Name="NewUser_btn" Click="AddNewUser" Background="#8F5CE1" Foreground="#f0ede8" FontSize="18" FontWeight="Bold" Height="30"
+            <Button Name="RemoveGame_btn" Click="RemoveGame" Background="#FF858585" Foreground="#FF0D38BF" FontSize="18" FontWeight="Bold" 
+                    Margin="0,10,0,0"
+                    Height="30" ToolTip="Delete a game from the sheet, all ownership data will be lost!">Remove Game</Button>
+            <Button Name="NewUser_btn" Click="AddNewUser" Background="#FF858585" Foreground="#FFDCD05F" FontSize="18" FontWeight="Bold" Height="30"
                     ToolTip="Add a new user to the google sheet. This requires a nickname and Discord ID.">Add New User</Button>
-            <Button Name="CheckOwnership_btn" Click="CheckGame" Background="#8F5CE1" Foreground="#f0ede8" FontSize="18" FontWeight="Bold" Height="30"
+            <Button Name="RemoveUser_btn" Click="RemoveUser" Background="#FF858585" Foreground="#FF0D38BF" FontSize="18" FontWeight="Bold" 
+                    Margin="0,10,0,0"
+                    Height="30" ToolTip="Delete a user from the sheet, all ownership data for this user will be lost!">Remove User</Button>
+            <Button Name="CheckOwnership_btn" Click="CheckGame" Background="#FF858585" Foreground="#FFDCD05F" FontSize="18" FontWeight="Bold" Height="30"
                     ToolTip="Check who owns a specified game.">Check Game Ownership</Button>
+            <!--old button color = FF8F5CE1-->
             <StackPanel.Resources>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Margin" Value="{StaticResource tbMargin}"/>
                 </Style>
             </StackPanel.Resources>
         </StackPanel>
-        <Button Click="Refresh_Click" Margin="510,20,229.333,343.667" 
-                ToolTip="Refresh - Sync any manual changes you've made to the Google Sheet">
-            <Button.Background>
-                <ImageBrush ImageSource="Images/temp_sync.png" Stretch="Uniform"/>
-            </Button.Background>
-        </Button>
-        <StackPanel Margin="628,10,10.334,109.667" Grid.ColumnSpan="2">
-            <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold">Discord Role IDs</Label>
-            <Label Foreground="#FFE0E0E0" FontWeight="Bold">Game Knight Role:</Label>
-            <TextBox Name="GameKnightRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="ID Here" TextChanged="GameKnightRole_box_TextChanged"/>
-            <Label Foreground="#FFE0E0E0" FontWeight="Bold">Coordinator Role:</Label>
-            <TextBox Name="CoordinatorRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="ID Here" TextChanged="CoordinatorRole_box_TextChanged"/>
-            <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Height="29" Margin="0,15,0,5">Application Options</Label>
+        <Canvas Grid.Row="1">
+            <Button Click="Refresh_Click" Width="38" Height="38" Margin="523,20,241.667,372" 
+                    ToolTip="Refresh - Sync any manual changes you've made to the Google Sheet">
+                <Button.Background>
+                    <ImageBrush ImageSource="Images/temp_sync.png" Stretch="Uniform"/>
+                </Button.Background>
+            </Button>
+        </Canvas>
+        <StackPanel Margin="628,10,10.333,35.667">
+            <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Height="29" Margin="0,0,0,5">Application Options</Label>
             <CheckBox Name="IncludeEveryone_chbx" Foreground="#f0ede8" FontWeight="Bold" ToolTip="Check this box if you want to ensure everyone owns the games that are put on the ballot." 
                       Margin="0,5,0,0" IsChecked="True" Checked="IncludeEveryone_Checked" Unchecked="IncludeEveryone_Checked">Include Everyone</CheckBox>
             <CheckBox Name="UseBallot_chbx" Foreground="#f0ede8" FontWeight="Bold" FontSize="12" ToolTip="Check this box if you want more than 1 game to vote from."
@@ -48,22 +55,35 @@
                 <ComboBoxItem IsSelected="False" Content="5" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
                 <ComboBoxItem IsSelected="False" Content="6" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
             </ComboBox>
+            <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Margin="0,25,0,5">Discord IDs</Label>
+            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the ID of your Game Knight Bot role.">Game Knight Role:</Label>
+            <TextBox Name="GameKnightRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Role ID Here" 
+                     TextChanged="GameKnightRole_box_TextChanged"/>
+            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the desired role ID of the Game Night Coordinator.">Coordinator Role:</Label>
+            <TextBox Name="CoordinatorRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Role ID Here" 
+                     TextChanged="CoordinatorRole_box_TextChanged"/>
+            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the channel that Game Knight operates through.">Game Knight Channel:</Label>
+            <TextBox Name="GameKnightChannel_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Channel ID Here"
+                     TextChanged="GameKnightChannel_box_TextChanged"/>
         </StackPanel>
-        <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,57,675,333"><Run Text="Ignore List"/></TextBlock>
-        <ListBox Name="IgnoreList_box" Background="#333231" Foreground="#f0ede8" Height="91" Margin="10,86,556,242">
-        </ListBox>
-        <Button Click="AddIgnore_Click" Height="30" Width="30"
-                    ToolTip="Add a new game to the Ignore List." Margin="171,51,591,338">
-            <Button.Background>
-                <ImageBrush ImageSource="Images/plus.png" Stretch="Uniform"/>
-            </Button.Background>
-        </Button>
-        <Button Click="RemoveIgnore_Click" Height="30" Width="30"
-                    ToolTip="Remove a game from the ignore list." Margin="206,51,556,338">
-            <Button.Background>
-                <ImageBrush ImageSource="Images/minus.png" Stretch="Uniform"/>
-            </Button.Background>
-        </Button>
+        <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,46,674.667,344"><Run Text="Ignore List"/></TextBlock>
+        <Canvas Grid.Row="1">
+            <ListBox Name="IgnoreList_box" Background="#333231" Foreground="#f0ede8" Height="140" Canvas.Left="10" Canvas.Top="75" Width="226"/>
+        </Canvas>
+        <Canvas Grid.Row="1">
+            <Button Click="AddIgnore_Click" Height="30" Width="30" BorderThickness="0" 
+                    ToolTip="Add a new game to the Ignore List." Canvas.Left="171" Canvas.Top="41">
+                <Button.Background>
+                    <ImageBrush ImageSource="Images/plus.png" Stretch="Uniform"/>
+                </Button.Background>
+            </Button>
+            <Button Click="RemoveIgnore_Click" Height="30" Width="30" BorderThickness="0" 
+                        ToolTip="Remove a game from the ignore list." Canvas.Left="206" Canvas.Top="41">
+                <Button.Background>
+                    <ImageBrush ImageSource="Images/minus.png" Stretch="Uniform"/>
+                </Button.Background>
+            </Button>
+        </Canvas>
         <!--<StackPanel HorizontalAlignment="Left" Margin="25,257,0,18.667" Width="212">
             <Label Name="IgnoreList_box" Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Margin="0,0,69,0">Ignore List</Label>
             <ListBox Background="#333231" Foreground="#f0ede8" Height="115">
@@ -72,12 +92,10 @@
                 <ListBoxItem>ListBox Item #3</ListBoxItem>
             </ListBox>
         </StackPanel>-->
-        <Button Click="LetsPlay" Margin="257,316,255.333,35.667" Content="Let's Play!" FontSize="30" FontWeight="Bold" Foreground="#f0ede8" Background="#DC951F"/>
-        <Popup Name="MyPopup"
-               Placement="Mouse"
-               HorizontalOffset="-100"
-               VerticalOffset="-100"
-               AllowsTransparency="True" Grid.ColumnSpan="2" Margin="0,0,0.334,-0.333"/>
+        <Button Click="LetsPlay" Margin="282,349,277.667,12" Content="Let's Play!" FontSize="37" FontWeight="Bold" 
+                Foreground="#FFDCD05F" Background="#FF858585"/>
+        <TextBlock TextWrapping="Wrap" Foreground="#FFC5BC67" FontSize="12" Margin="151,316,573.667,83" FontFamily="Viner Hand ITC"
+                   TextDecorations="{x:Null}"><Run Text="Version 1.0"/></TextBlock>
         <Image x:Name="GK_Standing_img" HorizontalAlignment="Left" Height="194" Width="199" Margin="-38,260,0,-35" VerticalAlignment="Top" Source="Images/GameKnight_Standing.png" RenderTransformOrigin="0.5,0.5"/>
         <Image x:Name="GK_Title_img" HorizontalAlignment="Left" Height="194" Width="199" Margin="2,202,0,0" VerticalAlignment="Top" Source="Images/GameKnight_Title_Image.png" RenderTransformOrigin="0.5,0.5"/>
     </Grid>

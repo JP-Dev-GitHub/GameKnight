@@ -37,6 +37,7 @@ namespace GameKnight
         public int state;
         public string coordinatorID;
         public string gameKnightID;
+        public string gameKnightChannel;
     }
 
     public class RawData
@@ -53,6 +54,8 @@ namespace GameKnight
         public const int UPDATE_DIRECTIVE = 0;
         public const int ADD_USER_DIRECTIVE = 1;
         public const int ADD_GAME_DIRECTIVE = 2;
+        public const int REMOVE_GAME_DIRECTIVE = 3;
+        public const int REMOVE_USER_DIRECTIVE = 4;
         public const int DISCORD_ID_LENGTH = 18;
         public string PATH = @"C:\path\to\GameKnight\";
 
@@ -92,8 +95,9 @@ namespace GameKnight
             IncludeEveryone_chbx.IsChecked = data.useEveryone;
             if(data.totalGames > 1)
                 BallotNum_cmbx.SelectedItem = BallotNum_cmbx.Items.GetItemAt(data.totalGames-2);
-            GameKnightRole_box.Text = data.gameKnightID.ToString();
-            CoordinatorRole_box.Text = data.coordinatorID.ToString();
+            GameKnightRole_box.Text = data.gameKnightID;
+            CoordinatorRole_box.Text = data.coordinatorID;
+            GameKnightChannel_box.Text = data.gameKnightChannel;
         }
 
         private void Refresh_Click(object sender, RoutedEventArgs e)
@@ -102,7 +106,8 @@ namespace GameKnight
             MessageBox.Show("Refreshed!");
         }
 
-        private bool CheckForDuplicate(string itemName, string list2check)
+        // Returns the index of the found duplicate, and -1 if there was no duplicate found
+        private int CheckForDuplicate(string itemName, string list2check)
         {
             itemName = itemName.ToLower().Replace(" ", "");
 
@@ -110,14 +115,16 @@ namespace GameKnight
             if (list2check == "game")
             {
                 List<string> gameList = data.games;
+                Console.WriteLine(gameList);
                 for (int i  = 0; i < gameList.Count; ++i)
                 {
-                    //Console.WriteLine("Comparing: " + itemName + " with: " + gameList[i].ToLower().Replace(" ", ""));
-                    if (itemName == gameList[i].ToLower().Replace(" ", ""))
-                        return true;
+                    string gameName = gameList[i].ToLower().Replace(" ", "");
+                    Console.WriteLine("Comparing: " + itemName + " with: " + gameName);
+                    if (itemName == gameName)
+                        return i;
                 }
 
-                return false;
+                return -1;
             }
             else if (list2check == "user") // were checking for a user
             {
@@ -125,10 +132,10 @@ namespace GameKnight
                 for (int i = 0; i < userList.Count; ++i)
                 {
                     if (itemName == userList[i].ToLower().Replace(" ", ""))
-                        return true;
+                        return i;
                 }
 
-                return false;
+                return -1;
             }
             else if (list2check == "ignore") // were checking ignore list
             {
@@ -136,15 +143,15 @@ namespace GameKnight
                 for (int i = 0; i < ignoreList.Count; ++i)
                 {
                     if (itemName == ignoreList[i].ToLower().Replace(" ", ""))
-                        return true;
+                        return i;
                 }
 
-                return false;
+                return -1;
             }
             else 
             {
                 MessageBox.Show("Error: No list was chosen for duplicate check!");
-                return false; // no list was checked
+                return -1; // no list was checked
             }
         }
 
@@ -160,7 +167,8 @@ namespace GameKnight
 
             try
             {
-                if (CheckForDuplicate(newGameName, "game"))
+                int index = CheckForDuplicate(newGameName, "game");
+                if (index != -1)
                 {
                     MessageBox.Show("Game: " + newGameName + " already exists in the spreadsheet!");
                     return;
@@ -168,7 +176,7 @@ namespace GameKnight
 
                 NewGame_btn.IsEnabled = false;
 
-                string cmd = "python " + PATH + "sheet_handler.py " + ADD_GAME_DIRECTIVE + " " + newGameName;
+                string cmd = "python " + PATH + "sheet_handler.py " + ADD_GAME_DIRECTIVE + " " + data.games[index];
 
                 Process p = new Process();
                 p.StartInfo.UseShellExecute = false;
@@ -191,6 +199,61 @@ namespace GameKnight
             }
 
             NewGame_btn.IsEnabled = true;
+        }
+
+        private void RemoveGame(object sender, RoutedEventArgs e)
+        {
+            string startString = "Game Title Here";
+
+            string gameName = Interaction.InputBox("Enter the name of a game that you want to permanently delete from the sheet: ", "Remove Game", startString, -1, -1);
+
+            // ensure an entry was made
+            if (gameName == "" || gameName == startString)
+                return;
+
+            try
+            {
+                int index = CheckForDuplicate(gameName, "game");
+
+                if (index < 0)
+                {
+                    MessageBox.Show(gameName + " was not found on the game list!");
+                    return;
+                }
+                else
+                {
+                    // destructive action check
+                    string question = "*WARNING*\nPerforming this action will delete all ownership data for this game!\n    " +
+                        "Are you sure you want to delete" + data.games[index] + "?\n";
+                    if (MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+                        return;
+                }
+
+                RemoveGame_btn.IsEnabled = false;
+
+                string cmd = "python " + PATH + "sheet_handler.py " + REMOVE_GAME_DIRECTIVE + " " + data.games[index];
+
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.FileName = "CMD.exe";
+                p.StartInfo.Arguments = "/c " + cmd;
+                p.Start();
+
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                UpdateJsonData();
+                data = LoadJsonDataStore(PATH + @"ballot_info.json");
+                MessageBox.Show("Successfully deleted " + gameName);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Error! Could not remove " + gameName + ":\n" + ex);
+            }
+
+            RemoveGame_btn.IsEnabled = true;
         }
 
         private void AddNewUser(object sender, RoutedEventArgs e)
@@ -219,7 +282,7 @@ namespace GameKnight
             }
 
             // check duplicates
-            if(CheckForDuplicate(newUserID, "user"))
+            if(CheckForDuplicate(newUserID, "user") != -1)
             {
                 MessageBox.Show("ID: " + newUserID + " already exists in the spreadsheet!");
                 return;
@@ -297,13 +360,13 @@ namespace GameKnight
             if (newGame == "" || newGame == startString)
                 return;
             // check that its on the game list
-            if (!CheckForDuplicate(newGame, "game"))
+            if (CheckForDuplicate(newGame, "game") < 0)
             {
                 MessageBox.Show(newGame + " is not a recognized game on the list. You can add it using 'Add New Game' button.");
                 return;
             }
             // check that its a duplicate
-            if (CheckForDuplicate(newGame, "ignore"))
+            if (CheckForDuplicate(newGame, "ignore") != -1)
             {
                 MessageBox.Show(newGame + " is already on the ignore list.");
                 return;
@@ -352,7 +415,7 @@ namespace GameKnight
         {
             if (!initialized)
                 return;
-            string def = "Game Knight ID Here";
+            string def = "Role ID Here";
             string txt = GameKnightRole_box.Text;
 
             if (txt.Length != DISCORD_ID_LENGTH)
@@ -369,7 +432,7 @@ namespace GameKnight
         {
             if (!initialized)
                 return;
-            string def = "Coordinator ID Here";
+            string def = "Role ID Here";
             string txt = CoordinatorRole_box.Text;
 
             if(txt.Length != DISCORD_ID_LENGTH)
@@ -382,11 +445,27 @@ namespace GameKnight
             data.coordinatorID = txt;
         }
 
+        private void GameKnightChannel_box_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!initialized)
+                return;
+            string def = "Channel ID Here";
+            string txt = GameKnightChannel_box.Text;
+
+            if (txt.Length != DISCORD_ID_LENGTH)
+            {
+                CoordinatorRole_box.Text = def;
+                return;
+            }
+            
+            data.gameKnightChannel = txt;
+        }
+
         private void CheckGame(object sender, RoutedEventArgs e)
         {
             string gameName = Interaction.InputBox("Enter the name of the game you want to check and click \"Ok\".\n\n", "Check Game Ownership", "Game name here", -1, -1);
-
-            if(gameName.Length <= 1)
+            
+            if (gameName.Length <= 1)
             {
                 MessageBox.Show("Game not recognized! Please enter a valid game title.");
                 return;
@@ -404,10 +483,9 @@ namespace GameKnight
             // Validate that the user entered an actual game name
             foreach (string game in games)
             {
-                if (game.Contains(gameName))
+                if (game.ToLower().Replace(" ", "") == gameName)
                 {
                     found = true;
-                    Console.WriteLine("Index of game: " + gameIndex.ToString());
                     break;
                 }
                 gameIndex++;   
@@ -419,7 +497,7 @@ namespace GameKnight
                 return;
             }
 
-            string msgStr = "These users own " + gameName + ":\n";
+            string msgStr = "These users own " + games[gameIndex] + ":\n";
             //Console.WriteLine("finding name: " + gameName);
             for (int i = 0; i < games.Count(); ++i)
             {
@@ -434,7 +512,7 @@ namespace GameKnight
                 } 
             }
 
-            msgStr += "\n\n\n\nThe following users do NOT own " + gameName + ":\n";
+            msgStr += "\n\n\n\nThe following users do NOT own " + games[gameIndex] + ":\n";
 
             foreach (var user in usersDontOwn)
             {
@@ -466,6 +544,7 @@ namespace GameKnight
             dic["CHANNELS"] = data.channels;
             dic["GK_ROLE"] = data.gameKnightID;
             dic["CDNTR_ROLE"] = data.coordinatorID;
+            dic["GK_CHANNEL"] = data.gameKnightChannel;
             dic["USE_BALLOT"] = data.useBallot.ToString();
             dic["EVERYONE"] = data.useEveryone.ToString();
 
@@ -526,7 +605,8 @@ namespace GameKnight
             data.channels = JsonConvert.DeserializeObject<List<string>>(jo["CHANNELS"].ToString());
             data.gameKnightID = JsonConvert.DeserializeObject<string>(jo["GK_ROLE"].ToString());
             data.coordinatorID = JsonConvert.DeserializeObject<string>(jo["CDNTR_ROLE"].ToString());
-            
+            data.gameKnightChannel = JsonConvert.DeserializeObject<string>(jo["GK_CHANNEL"].ToString());
+
             data.matrix = new List<List<int>>();
             data.users = new List<string>();
             data.nicknames = new List<string>();

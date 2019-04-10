@@ -28,8 +28,40 @@ def insertNewGame(newGame, sheet):
         cell.value = 0
     sheet.update_cells(blank_cells)
 
-def serializeBallotInfo():
-    pass
+def removeGame(game, sheet):
+    rows = sheet.row_count+1
+    cols = sheet.col_count+1
+
+    # find the column to be shifted
+    sc = sheet.find(game)
+    scol = sc._col
+    start = 65
+    c = chr(start+scol-1)
+    cell_list = sheet.range(c + '1:' + c + str(rows-1))
+    
+    # loop through remaining columns to shift values
+    for ii in range(scol, cols-1):
+        cell_list = sheet.range(c + '1:' + c + str(rows-1))
+        start += 1
+        c = chr(start+scol-1)
+        new_list = sheet.range(c + '1:' + c + str(rows-1))
+        t = new_list[0].value
+        cell_list[0].value = new_list[0].value
+        for ii in range(1, len(cell_list)):
+            cell_list[ii].value = int(new_list[ii].value)
+        sheet.update_cells(cell_list)
+
+    # delete blank column
+    sheet.resize(rows-1, cols-2)
+
+
+def removeUser(user, sheet):
+    try:
+        i = sheet.find(user)
+        sheet.delete_row(i._row)
+    except:
+        print("Error: could not find user! " + user)
+
 
 # only updates the MATRIX and MASTER_GAME_LIST in JSON data
 def updateData(sheet, data_path):
@@ -76,16 +108,20 @@ if __name__ == "__main__":
     
     if DIRECTIVE == 1: # insert a new user into the google sheet
         insertNewUser(sys.argv[2], sheet)
-        updateData(sheet, data_path) # make sure to update the stored data after its been altered
+        updateData(sheet, data_path)
     elif DIRECTIVE == 2: # insert a new game into the google sheet
         insertNewGame(sys.argv[2], sheet)
-        updateData(sheet, data_path) # make sure to update the stored data after its been altered
-    elif DIRECTIVE == 3: # serialize data from c# application
-        serializeBallotInfo()
+        updateData(sheet, data_path)
+    elif DIRECTIVE == 3: # delete a game from the google sheet
+        removeGame(sys.argv[2], sheet)
+        updateData(sheet, data_path)
+    elif DIRECTIVE == 4: # delete a user from the google sheet
+        removeUser(sys.argv[2], sheet)
+        updateData(sheet, data_path)
     else:
-        with open(PATH + "test.json", 'r') as f:
-            oldData = json.load(f)
-            for ii in oldData['MATRIX']:
-                print(ii)
-            print("done")
-        #updateData(sheet, data_path)
+        print("WARNING: NO DIRECTIVE ARGUMENT USED!")
+        pass
+        # with open(PATH + "test.json", 'r') as f:
+        #     oldData = json.load(f)
+        #     for ii in oldData['MATRIX']:
+        #         print(ii)

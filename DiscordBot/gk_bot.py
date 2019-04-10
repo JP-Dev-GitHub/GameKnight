@@ -16,8 +16,8 @@ NCAP_DEFINES = ["0\\N{COMBINING ENCLOSING KEYCAP}", "1\\N{COMBINING ENCLOSING KE
                 "6\\N{COMBINING ENCLOSING KEYCAP}", "7\\N{COMBINING ENCLOSING KEYCAP}", "8\\N{COMBINING ENCLOSING KEYCAP}", "9\\N{COMBINING ENCLOSING KEYCAP}"]
 EMOJI_TEXT = [":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:" ]
 PATH = ''
-GK_ROLE = 0 #561292277352235009 TODO: change this to Game Knight role when added to server 
-CDNTR_ROLE = 0 #511721787604729866 TODO: Change back to coordinator role: 550387319190978571
+GK_ROLE = 0
+CDNTR_ROLE = 0
 DATE_LIMIT = 3
 
 CONFIG = {}
@@ -44,6 +44,7 @@ class state(IntFlag):
     REROLLING = 5
 
 STATE = state.NEW_POLL
+GK_CHANNEL = 511721787604729866
 
 ################################   FUNCTIONS   ################################
 
@@ -70,10 +71,11 @@ def saveConfig(client, init = False):
         GK_ROLE = 561292277352235009
         CDNTR_ROLE = 511721787604729866
 
+    print("saving state: " + str(STATE+0))
     config = {}  
     config['data'] = []  
     config['data'].append({  
-        'STATE': STATE,
+        'STATE': STATE+0,
         'CHANNELS': CHANNELS,
         'GK_ROLE': GK_ROLE,
         'CDNTR_ROLE': CDNTR_ROLE
@@ -99,6 +101,7 @@ def loadConfig(client):
         with open(fp, "r") as f:
             CONFIG = json.load(f)
             d = CONFIG['data'][0]
+            STATE = state(d['STATE'])
             CHANNELS = d['CHANNELS']
             GK_ROLE = d['GK_ROLE']
             CDNTR_ROLE = d['CDNTR_ROLE']
@@ -288,13 +291,15 @@ async def on_ready():
     global CDNTR_ROLE
 
     loadConfig(client)
-    print("Bot_ID: ", BOT_ID)
-    print("CDNTR: ", CDNTR_ID)
+
+    
+    if ii in CHANNELS:
+        GK_CHANNEL = ii
+        print(ii + " is our GK channel")
 
     if STATE == state.NEW_POLL:
         for channel in client.get_all_channels():
-            if channel.name == 'game-night':
-                pass
+            if  channel in CHANNELS:
                 #await channel.send('WTF is a :one:?') # test message
                 await channel.send(":trumpet: @everyone :trumpet: Hear ye! Hear ye! A call for aid from Lord Game-Night-Coordinator!\n" +
                     "A new Game Cruscade is upon us! Will you answer the call to glory?\n" +
@@ -344,12 +349,12 @@ async def on_message(message):
         "      -      **!veto**  :  Each player can use a veto command once when a game as been selected. If **more than half** the player veto, " +
                                 "then ballot is rerolled.\n" +
         "      -      **!close**  :  [Coordinator CMD] Close the current RSVP poll. **No other users can join the poll after this command is used!**\n" +
-        "      -      **!kill**  :  [Coordinator CMD] Terminate the active poll. Use this when a poll is completed or " +
+        "      -      **!kill / !done**  :  [Coordinator CMD] Terminate the active poll. Use this when a poll is completed or " +
                                 "you want to restart. **WARNING: This will delete ALL current poll data!**\n\n")
 
     # !KILL COMMAND
-    if msg.find("!kill") != -1 and id == CDNTR_ID:
-        await message.channel.send("We've been routed! The battle is lost! Fall back, men! Retreat!!:arrow_left::horse_racing:\n" + 
+    if (msg.find("!kill") != -1 or msg.find("!done") != -1) and id == CDNTR_ID:
+        await message.channel.send("We've been routed! The battle is lost! Fall back, men!!  :arrow_left::horse_racing:\n" + 
             ":robot: **Poll has been terminated** :robot:")
         exit(0)
 
@@ -411,7 +416,8 @@ async def on_message(message):
             x = message.content.encode("ascii", 'namereplace').decode('utf-8')
             print(len(VOTES))
             for ii in range(0, len(DATE_LIST)):
-                if ii < DATE_LIMIT and not validVote and x.find(NCAP_DEFINES[ii+1]) != -1:
+                print("looking for: " + str(ii) + " in: " + x)
+                if ii < DATE_LIMIT and not validVote and (x.find(NCAP_DEFINES[ii+1]) != -1 or x.find(str(ii)) != -1):
                     VOTES[id][ii] += 1
                     validVote = True
             print(nickname + " voted for:")
@@ -420,7 +426,7 @@ async def on_message(message):
 
             # check that the vote is a valid response
             if validVote:
-                DONE_VOTING[''] = True
+                DONE_VOTING[id] = False
                 await message.author.send("Thanks for voting " + nickname + "!\n" +
                                         "I'll be sure to inform you when the council has adjourned!\n")
                 # inform channel
@@ -442,7 +448,9 @@ async def on_message(message):
                     gameVotes[ii] = 0
                 x = message.content.encode("ascii", 'namereplace').decode('utf-8') 
                 for ii in range(1, len(NCAP_DEFINES)):
-                    if ii < len(GAME_LIST)+1 and x.find(NCAP_DEFINES[ii]) != -1 and not validVote:
+                    print("looking for: " + str(ii) + " in: " + x)
+                    # make sure we havent already found a valid vote, that were in bounds, and that it matches a recognized option
+                    if not validVote and ii < len(GAME_LIST)+1 and (x.find(NCAP_DEFINES[ii]) != -1 or x.find(str(ii)) != -1):
                         index = ii-1
                         gameVotes[GAME_LIST[index]] += 1
                         validVote = True
@@ -455,7 +463,9 @@ async def on_message(message):
                                             "I'll be sure to inform you when the others are ready to ride out.\n")
                     # inform channel
                     await message.channel.send(":trumpet:*Trumpet Sounds*:trumpet:\nAhem! Sir " + nickname + " has voted!\n")
+                    print("CHECK DONE_VOTING:")
                     for ii in DONE_VOTING:
+                        print(ii)
                         if DONE_VOTING[ii] == False:
                             return
                     # All players have finished voting, sounds the warhorns!
@@ -476,11 +486,11 @@ async def on_message(message):
         if message.content.find("!veto") != -1:
             if id not in REROLL_VOTERS:
                 REROLL_VOTERS[id] = True
-                print(client.get_user(id).display_name + ' has vetoed!')
+                #print(client.get_user(id).display_name + ' has vetoed!')
                 # TODO: DM the person who vetoed so that they know
                 await message.author.send("Sir " + nickname + " has vetoed " + FINAL_GAME + "!")
                 print('veto percent: ' + str(len(REROLL_VOTERS) / TOTAL_PLAYERS))
-                if len(REROLL_VOTERS) >= math.floor(TOTAL_PLAYERS / 2.0):
+                if len(REROLL_VOTERS) / TOTAL_PLAYERS > math.floor(TOTAL_PLAYERS / 2.0):
                     await message.channel.send("@everyone :dagger::boom::goat: [VETO SUCCEEDED]\nThe will of the gods has wavered! " +
                                             "The roundtable will now propose a new vote...\n\n")
                     # veto succeeded, repeat the process...
@@ -514,7 +524,7 @@ async def on_message(message):
 
                     print('FINISHED VETO, STARTING REROLL...')
             else:
-                await message.channel.send(":shield:  Stand down, miscreant! :dagger: You have already cast your Veto right!")
+                await message.channel.send(":shield:  Stand down, miscreant! :dagger: You have already cast your veto right!")
     elif STATE == state.NONE:
         if message.content.find("!vote") != -1:
             await message.author.send("My apologies good Sir, but the Great Coordinator has already given marching orders...\n" +
