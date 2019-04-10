@@ -59,6 +59,7 @@ namespace GameKnight
         // Global Information
         public dynamic array;
         public DataStore data;
+        public bool initialized = false;
 
         public MainWindow()
         {
@@ -69,6 +70,7 @@ namespace GameKnight
             // Start Window
             InitializeComponent();
             UpdateGUI();
+            initialized = true;
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -81,12 +83,15 @@ namespace GameKnight
         private void UpdateGUI()
         {
             foreach (var ii in data.ignoreList)
+            {
+                Console.WriteLine(ii);
                 IgnoreList_box.Items.Insert(0, ii);
+            }
 
-            
             UseBallot_chbx.IsChecked = data.useBallot;
             IncludeEveryone_chbx.IsChecked = data.useEveryone;
-            BallotNum_cmbx.SelectedItem = data.totalGames;
+            if(data.totalGames > 1)
+                BallotNum_cmbx.SelectedItem = BallotNum_cmbx.Items.GetItemAt(data.totalGames-2);
             GameKnightRole_box.Text = data.gameKnightID.ToString();
             CoordinatorRole_box.Text = data.coordinatorID.ToString();
         }
@@ -119,8 +124,6 @@ namespace GameKnight
                 List<string> userList = data.users;
                 for (int i = 0; i < userList.Count; ++i)
                 {
-                    //Console.WriteLine("Looking for: " + itemName);
-                    //Console.WriteLine("against: " + userList[i]);
                     if (itemName == userList[i].ToLower().Replace(" ", ""))
                         return true;
                 }
@@ -240,7 +243,6 @@ namespace GameKnight
                 string output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
                 UpdateJsonData();
-                //Console.WriteLine(output);
                 MessageBox.Show("Successfully added " + newUserNickname + ":" + newUserID);
                 NewUser_btn.IsEnabled = true;
             }
@@ -253,30 +255,36 @@ namespace GameKnight
 
         private void LetsPlay(object sender, RoutedEventArgs e)
         {
-            Console.WriteLine("oh boy rick! Lets play!");
-            MyPopup.IsOpen = true;
-
+            if(data.state != 0)
+            {
+                string question = "*WARNING* There is already a poll in progress!\n    Do you want to start a new one?\n    (all vote data will be lost)";
+                if (MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+                    return;
+                else
+                    data.state = 1;
+            }
+            
             // Fetch all config data
-            UpdateJsonData();
-            //TODO: replace with ballot_info
             SaveJson(PATH + @"ballot_info.json");
             // Launch python bot
-            //try
-            //{
-            //    string cmd = "python " + PATH + @"DiscordBot\gk_bot.py ";
+            try
+            {
+                string cmd = "python " + PATH + @"DiscordBot\gk_bot.py ";
 
-            //    Console.WriteLine(cmd);
-            //    Process p = new Process();
-            //    p.StartInfo.UseShellExecute = true;
-            //    p.StartInfo.RedirectStandardOutput = false;
-            //    p.StartInfo.FileName = "CMD.exe";
-            //    p.StartInfo.Arguments = "/c " + cmd;
-            //    p.Start();
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show("Error! Could not run GK BOT!\n" + ex);
-            //}
+                Console.WriteLine(cmd);
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
+                p.StartInfo.RedirectStandardOutput = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.FileName = "CMD.exe";
+                p.StartInfo.Arguments = "/c " + cmd;
+                p.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error! Could not run GK BOT!\n" + ex);
+            }
         }
 
         private void AddIgnore_Click(object sender, RoutedEventArgs e)
@@ -307,6 +315,8 @@ namespace GameKnight
 
         private void RemoveIgnore_Click(object sender, RoutedEventArgs e)
         {
+            if (IgnoreList_box.SelectedItem == null)
+                return;
             string newGame = IgnoreList_box.SelectedItem.ToString();
             data.ignoreList.Remove(newGame);
             IgnoreList_box.Items.Remove(newGame);
@@ -314,16 +324,22 @@ namespace GameKnight
 
         private void IncludeEveryone_Checked(object sender, RoutedEventArgs e)
         {
+            if (!initialized)
+                return;
             data.useEveryone = (bool)IncludeEveryone_chbx.IsChecked;
         }
 
         private void UseBallot_chbx_Checked(object sender, RoutedEventArgs e)
         {
+            if (!initialized)
+                return;
             data.useBallot = (bool)UseBallot_chbx.IsChecked;
         }
 
         private void BallotNumber_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (!initialized)
+                return;
             string val = ((ComboBoxItem)BallotNum_cmbx.SelectedItem).Content as string;
             int k = 2;
             if (val != null && Int32.TryParse(val, out k))
@@ -334,6 +350,8 @@ namespace GameKnight
 
         private void GameKnightRole_box_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (!initialized)
+                return;
             string def = "Game Knight ID Here";
             string txt = GameKnightRole_box.Text;
 
@@ -349,6 +367,8 @@ namespace GameKnight
 
         private void CoordinatorRole_box_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (!initialized)
+                return;
             string def = "Coordinator ID Here";
             string txt = CoordinatorRole_box.Text;
 
@@ -430,7 +450,7 @@ namespace GameKnight
         public void SaveJson(string fp)
         {
             Console.WriteLine("Saving JSON data...");
-            UpdateJsonData();
+            //UpdateJsonData();
 
             dynamic x = File.ReadAllText(fp);
             JObject jo = JObject.Parse(x);
@@ -485,18 +505,9 @@ namespace GameKnight
         {
             if (!File.Exists(fp))
             {
-                //Dictionary<string, object> dic = new Dictionary<string, object>();
-                //// ADD MATRIX
-                //dic["MATRIX"] = new Dictionary<string, List<int>>();
-                //dic["TOTAL_GAMES"] = 4;
-                //dic["EVERYONE"] = pIncludeEveryone;
-                //dic["IGNORE_LIST"] = new List<string>();
-                //dic["MASTER_GAME_LIST"] = new List<string>();
-                //dic["STATE"] = 1;
-                //dic["CHANNELS"] = new List<string>();
-                //dic["GK_ROLE"] = 561292277352235009;
-                //dic["CDNTR_ROLE"] = 511721787604729866;
                 MessageBox.Show("Error! No ballot info JSON.");
+                // TODO: Create new JSON Default File
+                System.Windows.Application.Current.Shutdown();
                 return new DataStore();
             }
 
@@ -539,7 +550,6 @@ namespace GameKnight
         {
             Console.WriteLine("UPDATING JSON USING PYTHON...");
             string cmd = "python " + PATH + "sheet_handler.py " + UPDATE_DIRECTIVE;
-            Console.WriteLine(cmd);
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;

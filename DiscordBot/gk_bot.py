@@ -47,18 +47,6 @@ STATE = state.NEW_POLL
 
 ################################   FUNCTIONS   ################################
 
-# REMOVE THIS
-# fp = PATH + "test.json"
-# if os.path.isfile(fp): # check if the config exists
-#     with open(fp, "r") as f:
-#         CONFIG = json.load(f)
-#         d = CONFIG['MATRIX']
-#         for ii in d:
-#             print(ii)
-
-# print('done')
-# REMOVE THIS
-
 # READ TOKEN
 def readToken():
     with open(PATH + "DiscordBot\\token.txt", "r") as f:
@@ -299,45 +287,6 @@ async def on_ready():
     global GK_ROLE
     global CDNTR_ROLE
 
-    #TESTING!
-    # bd = {}
-    # bd['info'] = []  
-    # matrix = { '561291243179606061': [0,0,1,1,1,0], 
-    #            '143128900036329473': [0,1,1,0,1,0],
-    #            '433646881927593996': [1,0,0,0,1,0],
-    #            '142461721875972096': [1,1,1,1,1,0], }
-
-    # test_list = [ 'gearsofwar', 'nak', 'crashbandicoot' ]
-
-    # bd['info'].append({  
-    #     'MATRIX': matrix,
-    #     'IGNORE_LIST': test_list,
-    #     'TOTAL_GAMES': 4,
-    #     'EVERYONE': True
-    # })
-
-    # m = bd['info'][0]['MATRIX']
-    # ignoreList = bd['info'][0]['IGNORE_LIST']
-    # tg = bd['info'][0]['TOTAL_GAMES']
-    # everyone = bd['info'][0]['EVERYONE']
-    # for ii in ignoreList:
-    #     print(ii)
-    # for ii in m:
-    #     for i in ii:
-    #         print(i)  
-    # print("total games: " + str(tg))
-    # print("everyone: " + str(everyone))
-    
-    # fp = PATH + "ballot_info.json"
-    # with open(fp, 'w+') as outfile:  
-    #     json.dump(bd, outfile)
-    # print('DONE M8')
-    # gameVotes = [ 0, 4, 2, 1 ]
-    # GAME_LIST.pop(0)
-    # GAME_LIST.pop(0)
-    # game = getFinalGame(GAME_LIST, gameVotes)
-    # print(game)
-
     loadConfig(client)
     print("Bot_ID: ", BOT_ID)
     print("CDNTR: ", CDNTR_ID)
@@ -366,15 +315,16 @@ async def on_message(message):
     global REROLL_VOTERS
     global TOTAL_PLAYERS
     
-    # only active in certain channels
-    if str(message.channel) not in CHANNELS:
-        return
     # Get variables based on message sent 
-    #print(message.content)
-    #print('State: ' + str(STATE))
+    print('State: ' + str(STATE))
     id = message.author.id
     nickname = message.author.display_name
     msg = message.content
+    is_direct_msg = isinstance(message.channel, discord.abc.PrivateChannel)
+    
+    # only active in certain channels
+    if str(message.channel) not in CHANNELS and not is_direct_msg:
+        return
 
 ################################    COMMANDS    ################################
     
@@ -383,7 +333,7 @@ async def on_message(message):
             return
     else: # STATE = REROLLING so we need to continue to the W4_VOTE state
         STATE = state.W4_VOTE
-
+    
     # !HELP COMMAND
     if (msg.find("!commands") != -1) or (msg.find("!help") != -1):
         await message.channel.send(
@@ -404,19 +354,19 @@ async def on_message(message):
         exit(0)
 
     # # !STATUS COMMAND
-    if msg.find("!commands") != -1:
+    if msg.find("!status") != -1:
         if STATE == state.NONE:
-            await message.channel.send("*STATUS* :  None. There is no active poll. Try **!kill** to turn me off. :flushed: ")
+            await message.channel.send("**STATUS** :  None. There is no active poll. Try **!kill** to turn me off. :flushed: ")
         elif STATE == state.NEW_POLL:
-            await message.channel.send("*STATUS* :  NEW POLL. A new poll has just been started by the Coordinator.")
+            await message.channel.send("**STATUS** :  NEW POLL. A new poll has just been started by the Coordinator.")
         elif STATE == state.W4_RSVP:
-            await message.channel.send("*STATUS* :  W4 RSVP. Currently waiting for everyone to declare availability for upcoming game night.")
+            await message.channel.send("**STATUS** :  W4 RSVP. Currently waiting for everyone to declare availability for upcoming game night.")
         elif STATE == state.W4_VOTE:
-            await message.channel.send("*STATUS* :  W4 VOTE. Currently waiting for at-tendees to declare their preferred game from the ballot.")
+            await message.channel.send("**STATUS** :  W4 VOTE. Currently waiting for at-tendees to declare their preferred game from the ballot.")
         elif STATE == state.VETO:
-            await message.channel.send("*STATUS* :  VETO. A game has been selected, you may now cast **!veto** if you want a different game.")
+            await message.channel.send("**STATUS** :  VETO. A game has been selected, you may now cast **!veto** if you want a different game.")
         elif STATE == state.REROLLING:
-            await message.channel.send("*STATUS* :  REROLLING. Players didn't like the last game. Now rerolling ballot options.")
+            await message.channel.send("**STATUS** :  REROLLING. Players didn't like the last game. Now rerolling ballot options.")
 
 ################################    STATE LOGIC    ################################
 
@@ -464,9 +414,9 @@ async def on_message(message):
                 if ii < DATE_LIMIT and not validVote and x.find(NCAP_DEFINES[ii+1]) != -1:
                     VOTES[id][ii] += 1
                     validVote = True
-            # print(nickname + " voted for:")
-            # for ii in VOTES[id]:
-            #     print(ii)
+            print(nickname + " voted for:")
+            for ii in VOTES[id]:
+                print(ii)
 
             # check that the vote is a valid response
             if validVote:

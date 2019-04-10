@@ -8,7 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("images/minus.png")]
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("images/plus.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("images/gameknight_title_image.png")]
 
 
