@@ -29,6 +29,14 @@ namespace GameKnight
         public List<string> nicknames;
         public List<string> games;
         public List<List<int>> matrix;
+        public List<string> ignoreList;
+        public List<string> channels;
+        public bool useEveryone;
+        public bool useBallot;
+        public int totalGames;
+        public int state;
+        public string coordinatorID;
+        public string gameKnightID;
     }
 
     public class RawData
@@ -52,37 +60,49 @@ namespace GameKnight
         public dynamic array;
         public DataStore data;
 
-        public bool pIncludeEveryone = false;
-        public bool pUseBallot = false;
-        public int pBallotNum = 3;
-
         public MainWindow()
         {
-            InitializeComponent();
             PATH = Directory.GetCurrentDirectory();
             PATH = PATH.Substring(0, PATH.IndexOf("GameKnight") + 10) + "\\";
-            Console.WriteLine(PATH);
-            // update JSON Matrix data
+            // update JSON data
             UpdateJsonData();
+            // Start Window
+            InitializeComponent();
+            UpdateGUI();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            // Save when the app closes
+            SaveJson(PATH + @"ballot_info.json");
         }
 
         // ----------------------------------------------------------- Implementation ----------------------------------------------------------- //
+        private void UpdateGUI()
+        {
+            foreach (var ii in data.ignoreList)
+                IgnoreList_box.Items.Insert(0, ii);
+
+            
+            UseBallot_chbx.IsChecked = data.useBallot;
+            IncludeEveryone_chbx.IsChecked = data.useEveryone;
+            BallotNum_cmbx.SelectedItem = data.totalGames;
+            GameKnightRole_box.Text = data.gameKnightID.ToString();
+            CoordinatorRole_box.Text = data.coordinatorID.ToString();
+        }
+
         private void Refresh_Click(object sender, RoutedEventArgs e)
         {
             UpdateJsonData();
-            //foreach(var item in data.games)
-            //{
-            //    Console.WriteLine(item);
-            //}
             MessageBox.Show("Refreshed!");
         }
 
-        private bool CheckForDuplicate(string itemName, bool checkGame)
+        private bool CheckForDuplicate(string itemName, string list2check)
         {
             itemName = itemName.ToLower().Replace(" ", "");
 
             // check if the game is already on the list
-            if (checkGame)
+            if (list2check == "game")
             {
                 List<string> gameList = data.games;
                 for (int i  = 0; i < gameList.Count; ++i)
@@ -94,7 +114,7 @@ namespace GameKnight
 
                 return false;
             }
-            else // were checking for a user
+            else if (list2check == "user") // were checking for a user
             {
                 List<string> userList = data.users;
                 for (int i = 0; i < userList.Count; ++i)
@@ -106,6 +126,22 @@ namespace GameKnight
                 }
 
                 return false;
+            }
+            else if (list2check == "ignore") // were checking ignore list
+            {
+                List<string> ignoreList = data.ignoreList;
+                for (int i = 0; i < ignoreList.Count; ++i)
+                {
+                    if (itemName == ignoreList[i].ToLower().Replace(" ", ""))
+                        return true;
+                }
+
+                return false;
+            }
+            else 
+            {
+                MessageBox.Show("Error: No list was chosen for duplicate check!");
+                return false; // no list was checked
             }
         }
 
@@ -121,7 +157,7 @@ namespace GameKnight
 
             try
             {
-                if (CheckForDuplicate(newGameName, true))
+                if (CheckForDuplicate(newGameName, "game"))
                 {
                     MessageBox.Show("Game: " + newGameName + " already exists in the spreadsheet!");
                     return;
@@ -143,10 +179,8 @@ namespace GameKnight
                 string output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
                 UpdateJsonData();
-                data = LoadJsonDataStore(PATH + "ballot_info.json");
-                //Console.WriteLine(output);
+                data = LoadJsonDataStore(PATH + @"ballot_info.json");
                 MessageBox.Show("Successfully added " + newGameName);
-            
             }
             catch(Exception ex)
             {
@@ -182,7 +216,7 @@ namespace GameKnight
             }
 
             // check duplicates
-            if(CheckForDuplicate(newUserID, false))
+            if(CheckForDuplicate(newUserID, "user"))
             {
                 MessageBox.Show("ID: " + newUserID + " already exists in the spreadsheet!");
                 return;
@@ -225,8 +259,7 @@ namespace GameKnight
             // Fetch all config data
             UpdateJsonData();
             //TODO: replace with ballot_info
-            SaveJson(PATH + @"test.json");
-
+            SaveJson(PATH + @"ballot_info.json");
             // Launch python bot
             //try
             //{
@@ -246,14 +279,47 @@ namespace GameKnight
             //}
         }
 
+        private void AddIgnore_Click(object sender, RoutedEventArgs e)
+        {
+            string startString = "Enter Ignored Game Here";
+            string newGame = Interaction.InputBox("Enter a game name to be ignored. Games on the Ignore List are not possible candidates " +
+                "for a new ballot.", "Ignore New Game", startString, -1, -1);
+
+            // ensure an entry was made
+            if (newGame == "" || newGame == startString)
+                return;
+            // check that its on the game list
+            if (!CheckForDuplicate(newGame, "game"))
+            {
+                MessageBox.Show(newGame + " is not a recognized game on the list. You can add it using 'Add New Game' button.");
+                return;
+            }
+            // check that its a duplicate
+            if (CheckForDuplicate(newGame, "ignore"))
+            {
+                MessageBox.Show(newGame + " is already on the ignore list.");
+                return;
+            }
+
+            data.ignoreList.Add(newGame);
+            IgnoreList_box.Items.Insert(0, newGame);
+        }
+
+        private void RemoveIgnore_Click(object sender, RoutedEventArgs e)
+        {
+            string newGame = IgnoreList_box.SelectedItem.ToString();
+            data.ignoreList.Remove(newGame);
+            IgnoreList_box.Items.Remove(newGame);
+        }
+
         private void IncludeEveryone_Checked(object sender, RoutedEventArgs e)
         {
-            pIncludeEveryone = (bool)IncludeEveryone_chbx.IsChecked;
+            data.useEveryone = (bool)IncludeEveryone_chbx.IsChecked;
         }
 
         private void UseBallot_chbx_Checked(object sender, RoutedEventArgs e)
         {
-            pUseBallot = (bool)UseBallot_chbx.IsChecked;
+            data.useBallot = (bool)UseBallot_chbx.IsChecked;
         }
 
         private void BallotNumber_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -261,9 +327,39 @@ namespace GameKnight
             string val = ((ComboBoxItem)BallotNum_cmbx.SelectedItem).Content as string;
             int k = 2;
             if (val != null && Int32.TryParse(val, out k))
-                pBallotNum = k;
+                data.totalGames = k;
             else
-                pBallotNum = 2; // default
+                data.totalGames = 2; // default
+        }
+
+        private void GameKnightRole_box_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string def = "Game Knight ID Here";
+            string txt = GameKnightRole_box.Text;
+
+            if (txt.Length != DISCORD_ID_LENGTH)
+            {
+                GameKnightRole_box.Text = def;
+                return;
+            }
+
+            Console.WriteLine(txt);
+            data.gameKnightID = txt;
+        }
+
+        private void CoordinatorRole_box_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string def = "Coordinator ID Here";
+            string txt = CoordinatorRole_box.Text;
+
+            if(txt.Length != DISCORD_ID_LENGTH)
+            {
+                CoordinatorRole_box.Text = def;
+                return;
+            }
+
+            Console.WriteLine(txt);
+            data.coordinatorID = txt;
         }
 
         private void CheckGame(object sender, RoutedEventArgs e)
@@ -335,34 +431,48 @@ namespace GameKnight
         {
             Console.WriteLine("Saving JSON data...");
             UpdateJsonData();
-            //var newData = new Dictionary<string, List<object>> { { "Property", "foo" } };
 
-            dynamic x = File.ReadAllText(PATH + "ballot_info.json");
+            dynamic x = File.ReadAllText(fp);
             JObject jo = JObject.Parse(x);
 
             Dictionary<string, List<int>> matrix = JsonConvert.DeserializeObject<Dictionary<string, List<int>>>(jo["MATRIX"].ToString());
             Dictionary<string, object> dic = new Dictionary<string, object>();
+            // ADD MATRIX
             dic["MATRIX"] = matrix;
-            foreach(var ii in matrix)
-                Console.WriteLine(ii);
-            var temp = JsonConvert.SerializeObject(dic, Formatting.None);
+            dic["TOTAL_GAMES"] = data.useBallot ? data.totalGames : 1;
+            dic["IGNORE_LIST"] = data.ignoreList;
+            dic["MASTER_GAME_LIST"] = data.games;
+            dic["STATE"] = 1;
+            dic["CHANNELS"] = data.channels;
+            dic["GK_ROLE"] = data.gameKnightID;
+            dic["CDNTR_ROLE"] = data.coordinatorID;
+            dic["USE_BALLOT"] = data.useBallot.ToString();
+            dic["EVERYONE"] = data.useEveryone.ToString();
+
+
+            // CONVERT JObject
+            var cjo = JsonConvert.SerializeObject(dic, Formatting.None);
 
             using (StreamWriter file = File.CreateText(fp))
             {
                 JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(file, temp);
+                serializer.Serialize(file, cjo);
             }
 
             var fs = File.Open(fp, FileMode.OpenOrCreate, FileAccess.ReadWrite);
             var sr = new StreamReader(fs);
             string line;
-
             line = sr.ReadLine();
-            line = line.Remove(0,1);
-            line =  line.Replace(@"\", "");
+
+            if (line[0] == '\"')
+                line = line.Remove(0, 1);
+            if (line[line.Length - 1] == '\"')
+                line = line.Remove(line.Length - 1, 1);
+            line = line.Replace(@"\", "");
             fs.Close();
 
             File.Delete(fp);
+
             using (StreamWriter file = File.CreateText(fp))
             {
                 file.WriteLine(line);
@@ -373,17 +483,43 @@ namespace GameKnight
 
         public DataStore LoadJsonDataStore(string fp)
         {
+            if (!File.Exists(fp))
+            {
+                //Dictionary<string, object> dic = new Dictionary<string, object>();
+                //// ADD MATRIX
+                //dic["MATRIX"] = new Dictionary<string, List<int>>();
+                //dic["TOTAL_GAMES"] = 4;
+                //dic["EVERYONE"] = pIncludeEveryone;
+                //dic["IGNORE_LIST"] = new List<string>();
+                //dic["MASTER_GAME_LIST"] = new List<string>();
+                //dic["STATE"] = 1;
+                //dic["CHANNELS"] = new List<string>();
+                //dic["GK_ROLE"] = 561292277352235009;
+                //dic["CDNTR_ROLE"] = 511721787604729866;
+                MessageBox.Show("Error! No ballot info JSON.");
+                return new DataStore();
+            }
+
             data = new DataStore();
             Console.WriteLine("Reading JSON...");
             dynamic x = File.ReadAllText(fp);
             JObject jo = JObject.Parse(x);
             // convert JToken data in JSON to usable types
-            data.games = JsonConvert.DeserializeObject<List<string>>(jo["MASTER_GAME_LIST"].ToString());
-
             Dictionary<string, List<int>> matrix = JsonConvert.DeserializeObject<Dictionary<string, List<int>>>(jo["MATRIX"].ToString());
+            data.totalGames = JsonConvert.DeserializeObject<int>(jo["TOTAL_GAMES"].ToString());
+            data.useEveryone = Convert.ToBoolean(JsonConvert.DeserializeObject<string>(jo["EVERYONE"].ToString().ToLower()));
+            data.useBallot = Convert.ToBoolean(JsonConvert.DeserializeObject<string>(jo["USE_BALLOT"].ToString().ToLower()));
+            data.ignoreList = JsonConvert.DeserializeObject<List<string>>(jo["IGNORE_LIST"].ToString());
+            data.games = JsonConvert.DeserializeObject<List<string>>(jo["MASTER_GAME_LIST"].ToString());
+            data.state = JsonConvert.DeserializeObject<int>(jo["STATE"].ToString());
+            data.channels = JsonConvert.DeserializeObject<List<string>>(jo["CHANNELS"].ToString());
+            data.gameKnightID = JsonConvert.DeserializeObject<string>(jo["GK_ROLE"].ToString());
+            data.coordinatorID = JsonConvert.DeserializeObject<string>(jo["CDNTR_ROLE"].ToString());
+            
             data.matrix = new List<List<int>>();
             data.users = new List<string>();
             data.nicknames = new List<string>();
+
             foreach (var item in matrix)
             {
                 // only get the ID for our purposes

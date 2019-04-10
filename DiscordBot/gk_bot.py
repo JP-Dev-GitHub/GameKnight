@@ -48,15 +48,15 @@ STATE = state.NEW_POLL
 ################################   FUNCTIONS   ################################
 
 # REMOVE THIS
-fp = PATH + "test.json"
-if os.path.isfile(fp): # check if the config exists
-    with open(fp, "r") as f:
-        CONFIG = json.load(f)
-        d = CONFIG['MATRIX']
-        for ii in d:
-            print(ii)
+# fp = PATH + "test.json"
+# if os.path.isfile(fp): # check if the config exists
+#     with open(fp, "r") as f:
+#         CONFIG = json.load(f)
+#         d = CONFIG['MATRIX']
+#         for ii in d:
+#             print(ii)
 
-print('done')
+# print('done')
 # REMOVE THIS
 
 # READ TOKEN

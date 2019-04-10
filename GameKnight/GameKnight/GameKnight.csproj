@@ -104,5 +104,9 @@
     <Resource Include="Images\GameKnight_Logo.png" />
     <Resource Include="Images\temp_sync.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\minus.png" />
+    <Resource Include="Images\plus.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
