@@ -36,3 +36,11 @@ Z:\GameKnight\GameKnight\GameKnight\obj\Debug\GameKnight.csproj.CoreCompileInput
 Z:\GameKnight\GameKnight\GameKnight\obj\Debug\GameKnight.csproj.CopyComplete
 Z:\GameKnight\GameKnight\GameKnight\obj\Debug\GameKnight.exe
 Z:\GameKnight\GameKnight\GameKnight\obj\Debug\GameKnight.pdb
+Z:\GameKnight\GameKnight\GameKnight\obj\Debug\GameKnight_Content.g.cs
+Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.dll
+Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.resources.dll
+Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.Themes.Aero.dll
+Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.Themes.Metro.dll
+Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.Themes.VS2010.dll
+Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.Toolkit.dll
+Z:\GameKnight\GameKnight\GameKnight\bin\Debug\es\Xceed.Wpf.AvalonDock.resources.dll

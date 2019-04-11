@@ -19,7 +19,7 @@ using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.ComponentModel;
 using Microsoft.VisualBasic;
-
+using Xceed.Wpf.Toolkit;
 
 namespace GameKnight
 {
@@ -103,7 +103,7 @@ namespace GameKnight
         private void Refresh_Click(object sender, RoutedEventArgs e)
         {
             UpdateJsonData();
-            MessageBox.Show("Refreshed!");
+            System.Windows.MessageBox.Show("Refreshed!");
         }
 
         // Returns the index of the found duplicate, and -1 if there was no duplicate found
@@ -150,7 +150,7 @@ namespace GameKnight
             }
             else 
             {
-                MessageBox.Show("Error: No list was chosen for duplicate check!");
+                System.Windows.MessageBox.Show("Error: No list was chosen for duplicate check!");
                 return -1; // no list was checked
             }
         }
@@ -170,7 +170,7 @@ namespace GameKnight
                 int index = CheckForDuplicate(newGameName, "game");
                 if (index != -1)
                 {
-                    MessageBox.Show("Game: " + newGameName + " already exists in the spreadsheet!");
+                    System.Windows.MessageBox.Show("Game: " + newGameName + " already exists in the spreadsheet!");
                     return;
                 }
 
@@ -191,11 +191,11 @@ namespace GameKnight
                 p.WaitForExit();
                 UpdateJsonData();
                 data = LoadJsonDataStore(PATH + @"ballot_info.json");
-                MessageBox.Show("Successfully added " + newGameName);
+                System.Windows.MessageBox.Show("Successfully added " + newGameName);
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Error! Could not add " + newGameName + ":\n" + ex);
+                System.Windows.MessageBox.Show("Error! Could not add " + newGameName + ":\n" + ex);
             }
 
             NewGame_btn.IsEnabled = true;
@@ -217,7 +217,7 @@ namespace GameKnight
 
                 if (index < 0)
                 {
-                    MessageBox.Show(gameName + " was not found on the game list!");
+                    System.Windows.MessageBox.Show(gameName + " was not found on the game list!");
                     return;
                 }
                 else
@@ -225,7 +225,7 @@ namespace GameKnight
                     // destructive action check
                     string question = "*WARNING*\nPerforming this action will delete all ownership data for this game!\n    " +
                         "Are you sure you want to delete" + data.games[index] + "?\n";
-                    if (MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+                    if (System.Windows.MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
                         return;
                 }
 
@@ -246,11 +246,11 @@ namespace GameKnight
                 p.WaitForExit();
                 UpdateJsonData();
                 data = LoadJsonDataStore(PATH + @"ballot_info.json");
-                MessageBox.Show("Successfully deleted " + gameName);
+                System.Windows.MessageBox.Show("Successfully deleted " + gameName);
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Error! Could not remove " + gameName + ":\n" + ex);
+                System.Windows.MessageBox.Show("Error! Could not remove " + gameName + ":\n" + ex);
             }
 
             RemoveGame_btn.IsEnabled = true;
@@ -277,14 +277,14 @@ namespace GameKnight
             // looking for non-18-digit id
             if (newUserID.Length != DISCORD_ID_LENGTH)
             {
-                MessageBox.Show("Incorrect ID length!\n\nDiscord IDs are exactly " + DISCORD_ID_LENGTH + "-digits long.");
+                System.Windows.MessageBox.Show("Incorrect ID length!\n\nDiscord IDs are exactly " + DISCORD_ID_LENGTH + "-digits long.");
                 return;
             }
 
             // check duplicates
             if(CheckForDuplicate(newUserID, "user") != -1)
             {
-                MessageBox.Show("ID: " + newUserID + " already exists in the spreadsheet!");
+                System.Windows.MessageBox.Show("ID: " + newUserID + " already exists in the spreadsheet!");
                 return;
             }
 
@@ -306,14 +306,19 @@ namespace GameKnight
                 string output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
                 UpdateJsonData();
-                MessageBox.Show("Successfully added " + newUserNickname + ":" + newUserID);
+                System.Windows.MessageBox.Show("Successfully added " + newUserNickname + ":" + newUserID);
                 NewUser_btn.IsEnabled = true;
             }
             catch (Exception ex)
             {
                 NewUser_btn.IsEnabled = true;
-                MessageBox.Show("Error! Could not add " + newUserID + ":\n" + ex);
+                System.Windows.MessageBox.Show("Error! Could not add " + newUserID + ":\n" + ex);
             }
+        }
+
+        private void RemoveUser(object sender, RoutedEventArgs e)
+        {
+
         }
 
         private void LetsPlay(object sender, RoutedEventArgs e)
@@ -321,7 +326,7 @@ namespace GameKnight
             if(data.state != 0)
             {
                 string question = "*WARNING* There is already a poll in progress!\n    Do you want to start a new one?\n    (all vote data will be lost)";
-                if (MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+                if (System.Windows.MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
                     return;
                 else
                     data.state = 1;
@@ -332,6 +337,7 @@ namespace GameKnight
             // Launch python bot
             try
             {
+                Console.WriteLine("Launching Discord bot...");
                 string cmd = "python " + PATH + @"DiscordBot\gk_bot.py ";
 
                 Console.WriteLine(cmd);
@@ -346,7 +352,7 @@ namespace GameKnight
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error! Could not run GK BOT!\n" + ex);
+                System.Windows.MessageBox.Show("Error! Could not run GK BOT!\n" + ex);
             }
         }
 
@@ -362,13 +368,13 @@ namespace GameKnight
             // check that its on the game list
             if (CheckForDuplicate(newGame, "game") < 0)
             {
-                MessageBox.Show(newGame + " is not a recognized game on the list. You can add it using 'Add New Game' button.");
+                System.Windows.MessageBox.Show(newGame + " is not a recognized game on the list. You can add it using 'Add New Game' button.");
                 return;
             }
             // check that its a duplicate
             if (CheckForDuplicate(newGame, "ignore") != -1)
             {
-                MessageBox.Show(newGame + " is already on the ignore list.");
+                System.Windows.MessageBox.Show(newGame + " is already on the ignore list.");
                 return;
             }
 
@@ -383,6 +389,16 @@ namespace GameKnight
             string newGame = IgnoreList_box.SelectedItem.ToString();
             data.ignoreList.Remove(newGame);
             IgnoreList_box.Items.Remove(newGame);
+        }
+
+        private void RemoveDate_Click(object sender, RoutedEventArgs e)
+        {
+            //TODO
+        }
+
+        private void AddDate_Click(object sender, RoutedEventArgs e)
+        {
+            //TODO
         }
 
         private void IncludeEveryone_Checked(object sender, RoutedEventArgs e)
@@ -467,7 +483,7 @@ namespace GameKnight
             
             if (gameName.Length <= 1)
             {
-                MessageBox.Show("Game not recognized! Please enter a valid game title.");
+                System.Windows.MessageBox.Show("Game not recognized! Please enter a valid game title.");
                 return;
             }
             
@@ -493,7 +509,7 @@ namespace GameKnight
 
             if (!found)
             {
-                MessageBox.Show("Game not recognized! Please enter a valid game title.");
+                System.Windows.MessageBox.Show("Game not recognized! Please enter a valid game title.");
                 return;
             }
 
@@ -519,7 +535,7 @@ namespace GameKnight
                 msgStr += user + "\n";
             }
             // TODO: Create actual popup response box
-            MessageBox.Show(msgStr);
+            System.Windows.MessageBox.Show(msgStr);
         }
 
         // Gets currently stored DataStore (matrix, game list, users)
@@ -584,7 +600,7 @@ namespace GameKnight
         {
             if (!File.Exists(fp))
             {
-                MessageBox.Show("Error! No ballot info JSON.");
+                System.Windows.MessageBox.Show("Error! No ballot info JSON.");
                 // TODO: Create new JSON Default File
                 System.Windows.Application.Current.Shutdown();
                 return new DataStore();

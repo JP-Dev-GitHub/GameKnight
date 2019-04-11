@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GameKnight"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         ResizeMode="CanMinimize"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
@@ -66,37 +67,61 @@
             <TextBox Name="GameKnightChannel_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Channel ID Here"
                      TextChanged="GameKnightChannel_box_TextChanged"/>
         </StackPanel>
-        <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,46,674.667,344"><Run Text="Ignore List"/></TextBlock>
+        <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,10,674,380"><Run Text="Ignore List"/></TextBlock>
         <Canvas Grid.Row="1">
-            <ListBox Name="IgnoreList_box" Background="#333231" Foreground="#f0ede8" Height="140" Canvas.Left="10" Canvas.Top="75" Width="226"/>
+            <ListBox Name="IgnoreList_box" Background="#333231" Foreground="#f0ede8" Height="116" Canvas.Left="10" Canvas.Top="40" Width="226"/>
         </Canvas>
         <Canvas Grid.Row="1">
-            <Button Click="AddIgnore_Click" Height="30" Width="30" BorderThickness="0" 
-                    ToolTip="Add a new game to the Ignore List." Canvas.Left="171" Canvas.Top="41">
+            <Button Click="AddIgnore_Click" Height="30" Width="30" BorderThickness="0" Margin="0,5,0,0"
+                    ToolTip="Add a new game to the Ignore List." Canvas.Left="171">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/plus.png" Stretch="Uniform"/>
                 </Button.Background>
             </Button>
-            <Button Click="RemoveIgnore_Click" Height="30" Width="30" BorderThickness="0" 
-                        ToolTip="Remove a game from the ignore list." Canvas.Left="206" Canvas.Top="41">
+            <Button Click="RemoveIgnore_Click" Height="30" Width="30" BorderThickness="0" Margin="0,5,0,0"
+                        ToolTip="Remove a game from the ignore list." Canvas.Left="206">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/minus.png" Stretch="Uniform"/>
                 </Button.Background>
             </Button>
         </Canvas>
-        <!--<StackPanel HorizontalAlignment="Left" Margin="25,257,0,18.667" Width="212">
-            <Label Name="IgnoreList_box" Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Margin="0,0,69,0">Ignore List</Label>
-            <ListBox Background="#333231" Foreground="#f0ede8" Height="115">
-                <ListBoxItem>ListBox Item #1</ListBoxItem>
-                <ListBoxItem>ListBox Item #2</ListBoxItem>
-                <ListBoxItem>ListBox Item #3</ListBoxItem>
-            </ListBox>
-        </StackPanel>-->
+        <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,165,674,225"><Run Text="Date Choices"/></TextBlock>
+        <Canvas Grid.Row="1">
+            <ListBox Name="DateList_box" Background="#333231" Foreground="#f0ede8" Height="56" Canvas.Left="10" Canvas.Top="195" 
+                     Width="143"/>
+        </Canvas>
         <Button Click="LetsPlay" Margin="282,349,277.667,12" Content="Let's Play!" FontSize="37" FontWeight="Bold" 
                 Foreground="#FFDCD05F" Background="#FF858585"/>
-        <TextBlock TextWrapping="Wrap" Foreground="#FFC5BC67" FontSize="12" Margin="151,316,573.667,83" FontFamily="Viner Hand ITC"
+        <TextBlock TextWrapping="Wrap" Foreground="#FFC5BC67" FontSize="12" Margin="175,375,549,24" FontFamily="Viner Hand ITC"
                    TextDecorations="{x:Null}"><Run Text="Version 1.0"/></TextBlock>
-        <Image x:Name="GK_Standing_img" HorizontalAlignment="Left" Height="194" Width="199" Margin="-38,260,0,-35" VerticalAlignment="Top" Source="Images/GameKnight_Standing.png" RenderTransformOrigin="0.5,0.5"/>
-        <Image x:Name="GK_Title_img" HorizontalAlignment="Left" Height="194" Width="199" Margin="2,202,0,0" VerticalAlignment="Top" Source="Images/GameKnight_Title_Image.png" RenderTransformOrigin="0.5,0.5"/>
+        <Canvas Grid.Row="1">
+            <Button Click="AddDate_Click" Height="30" Width="30" BorderThickness="0"
+                    ToolTip="Add a new game to the Ignore List." Canvas.Left="173" Canvas.Top="164">
+                <Button.Background>
+                    <ImageBrush ImageSource="Images/plus.png" Stretch="Uniform"/>
+                </Button.Background>
+            </Button>
+            <Button Click="RemoveDate_Click" Height="30" Width="30" BorderThickness="0"
+                        ToolTip="Remove a game from the ignore list." Canvas.Left="208" Canvas.Top="164">
+                <Button.Background>
+                    <ImageBrush ImageSource="Images/minus.png" Stretch="Uniform"/>
+                </Button.Background>
+            </Button>
+        </Canvas>
+        <Image x:Name="GK_Standing_img" HorizontalAlignment="Left" Height="150" Width="150" Margin="-39,301,0,-30" VerticalAlignment="Top" Source="Images/GameKnight_Standing.png" RenderTransformOrigin="0.5,0.5"/>
+        <Image x:Name="GK_Title_img" HorizontalAlignment="Left" Height="194" Width="199" Margin="26,261,0,-34" VerticalAlignment="Top" Source="Images/GameKnight_Title_Image.png" RenderTransformOrigin="0.5,0.5"/>
+        <Grid>
+            <DatePicker HorizontalAlignment="Left" Margin="165,197,0,0" VerticalAlignment="Top"/>
+            <ComboBox x:Name="DateTime_cmbx" Margin="165,226,527,172" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12" SelectionChanged="BallotNumber_SelectionChanged" Height="23">
+                <ComboBoxItem IsSelected="True" Content="1:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                <ComboBoxItem IsSelected="True" Content="2:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                <ComboBoxItem IsSelected="False" Content="3:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                <ComboBoxItem IsSelected="False" Content="4:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                <ComboBoxItem IsSelected="False" Content="5:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                <ComboBoxItem IsSelected="False" Content="6:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+            </ComboBox>
+        </Grid>
+        <xctk:TimePicker x:Name="StartTime_tp" Margin="39,255,549,125" Format="Custom" FormatString="HH:mm tt" Value="{Binding CurrentDateTime}" >
+        </xctk:TimePicker>
     </Grid>
 </Window>

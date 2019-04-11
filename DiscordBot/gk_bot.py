@@ -169,7 +169,7 @@ def getGameDate(votes):
     for key in votes:
         for i in range(0, len(votes[key])):
             voteTally[i] += votes[key][i]
-            #print('ind: ' + str(i) + ', val: ' + str(voteTally[i]))
+            #rint('ind: ' + str(i) + ', val: ' + str(voteTally[i]))
     m = 0
     index = 0
     for ii in range(0, len(voteTally)):
@@ -292,14 +292,9 @@ async def on_ready():
 
     loadConfig(client)
 
-    
-    if ii in CHANNELS:
-        GK_CHANNEL = ii
-        print(ii + " is our GK channel")
-
     if STATE == state.NEW_POLL:
         for channel in client.get_all_channels():
-            if  channel in CHANNELS:
+            if  channel.name in CHANNELS:
                 #await channel.send('WTF is a :one:?') # test message
                 await channel.send(":trumpet: @everyone :trumpet: Hear ye! Hear ye! A call for aid from Lord Game-Night-Coordinator!\n" +
                     "A new Game Cruscade is upon us! Will you answer the call to glory?\n" +
@@ -417,7 +412,7 @@ async def on_message(message):
             print(len(VOTES))
             for ii in range(0, len(DATE_LIST)):
                 print("looking for: " + str(ii) + " in: " + x)
-                if ii < DATE_LIMIT and not validVote and (x.find(NCAP_DEFINES[ii+1]) != -1 or x.find(str(ii)) != -1):
+                if ii < DATE_LIMIT and not validVote and (x.find(NCAP_DEFINES[ii+1]) != -1 or x.find(str(ii+1)) != -1):
                     VOTES[id][ii] += 1
                     validVote = True
             print(nickname + " voted for:")
@@ -450,7 +445,7 @@ async def on_message(message):
                 for ii in range(1, len(NCAP_DEFINES)):
                     print("looking for: " + str(ii) + " in: " + x)
                     # make sure we havent already found a valid vote, that were in bounds, and that it matches a recognized option
-                    if not validVote and ii < len(GAME_LIST)+1 and (x.find(NCAP_DEFINES[ii]) != -1 or x.find(str(ii)) != -1):
+                    if not validVote and ii < len(GAME_LIST)+1 and (x.find(NCAP_DEFINES[ii]) != -1 or x.find(str(ii+1)) != -1):
                         index = ii-1
                         gameVotes[GAME_LIST[index]] += 1
                         validVote = True
@@ -490,7 +485,7 @@ async def on_message(message):
                 # TODO: DM the person who vetoed so that they know
                 await message.author.send("Sir " + nickname + " has vetoed " + FINAL_GAME + "!")
                 print('veto percent: ' + str(len(REROLL_VOTERS) / TOTAL_PLAYERS))
-                if len(REROLL_VOTERS) / TOTAL_PLAYERS > math.floor(TOTAL_PLAYERS / 2.0):
+                if len(REROLL_VOTERS) / TOTAL_PLAYERS > 0.50: # need majority
                     await message.channel.send("@everyone :dagger::boom::goat: [VETO SUCCEEDED]\nThe will of the gods has wavered! " +
                                             "The roundtable will now propose a new vote...\n\n")
                     # veto succeeded, repeat the process...

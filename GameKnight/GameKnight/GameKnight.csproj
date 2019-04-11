@@ -56,6 +56,24 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="Xceed.Wpf.AvalonDock">
+      <HintPath>..\lib\Xceed.Wpf.AvalonDock.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.resources">
+      <HintPath>..\lib\es\Xceed.Wpf.AvalonDock.resources.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.Aero">
+      <HintPath>..\lib\Xceed.Wpf.AvalonDock.Themes.Aero.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.Metro">
+      <HintPath>..\lib\Xceed.Wpf.AvalonDock.Themes.Metro.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.AvalonDock.Themes.VS2010">
+      <HintPath>..\lib\Xceed.Wpf.AvalonDock.Themes.VS2010.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.Toolkit">
+      <HintPath>..\lib\Xceed.Wpf.Toolkit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -117,6 +135,24 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\GameKnight_Title_Image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Xceed\de\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\es\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\fr\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\fr\Xceed.Wpf.Toolkit.LiveExplorer.resources.dll" />
+    <Content Include="Xceed\hu\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\it\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\pt-BR\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\ro\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\ru\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\sv\Xceed.Wpf.AvalonDock.resources.dll" />
+    <Content Include="Xceed\Xceed.Wpf.AvalonDock.dll" />
+    <Content Include="Xceed\Xceed.Wpf.AvalonDock.Themes.Aero.dll" />
+    <Content Include="Xceed\Xceed.Wpf.AvalonDock.Themes.Metro.dll" />
+    <Content Include="Xceed\Xceed.Wpf.AvalonDock.Themes.VS2010.dll" />
+    <Content Include="Xceed\Xceed.Wpf.Toolkit.dll" />
+    <Content Include="Xceed\zh-Hans\Xceed.Wpf.AvalonDock.resources.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
