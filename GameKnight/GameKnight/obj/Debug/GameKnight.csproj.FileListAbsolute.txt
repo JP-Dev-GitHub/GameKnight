@@ -44,3 +44,11 @@ Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.Themes.Metro.
 Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.Themes.VS2010.dll
 Z:\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.Toolkit.dll
 Z:\GameKnight\GameKnight\GameKnight\bin\Debug\es\Xceed.Wpf.AvalonDock.resources.dll
+C:\Users\Joshx\Desktop\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.dll
+C:\Users\Joshx\Desktop\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.resources.dll
+C:\Users\Joshx\Desktop\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.Themes.Aero.dll
+C:\Users\Joshx\Desktop\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.Themes.Metro.dll
+C:\Users\Joshx\Desktop\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.AvalonDock.Themes.VS2010.dll
+C:\Users\Joshx\Desktop\GameKnight\GameKnight\GameKnight\bin\Debug\Xceed.Wpf.Toolkit.dll
+C:\Users\Joshx\Desktop\GameKnight\GameKnight\GameKnight\bin\Debug\es\Xceed.Wpf.AvalonDock.resources.dll
+C:\Users\Joshx\Desktop\GameKnight\GameKnight\GameKnight\obj\Debug\GameKnight_Content.g.cs

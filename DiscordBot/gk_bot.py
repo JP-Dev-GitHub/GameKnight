@@ -26,8 +26,8 @@ CDNTR_ID = 0
 CHANNELS = ['game-night']
 
 
-GAME_LIST = ['kappa', 'hitler', 'leggo bible', 'gearsofwar', 'nak', 'crashbandicoot']
-DATE_LIST = ['01/01 ~1pm', '01/02 ~2pm', '01/03 ~3pm' ]
+GAME_LIST = []
+DATE_LIST = []
 FINAL_DATE = ''
 FINAL_GAME = ''
 VOTES = {}
@@ -61,6 +61,7 @@ def saveConfig(client, init = False):
     global BOT_ID
     global CDNTR_ID
     global CHANNELS
+    global DATE_LIST
     global GK_ROLE
     global CDNTR_ROLE
 
@@ -68,6 +69,7 @@ def saveConfig(client, init = False):
         print('GENERATING NEW CONFIG!')
         STATE = state.NEW_POLL+0 # need arithmatic to convert to int?
         CHANNELS = ['game-night']
+        DATE_LIST = ['no date']
         GK_ROLE = 561292277352235009
         CDNTR_ROLE = 511721787604729866
 
@@ -77,6 +79,7 @@ def saveConfig(client, init = False):
     config['data'].append({  
         'STATE': STATE+0,
         'CHANNELS': CHANNELS,
+        'DATE_LIST': DATE_LIST,
         'GK_ROLE': GK_ROLE,
         'CDNTR_ROLE': CDNTR_ROLE
     })
@@ -93,6 +96,7 @@ def loadConfig(client):
     global BOT_ID
     global CDNTR_ID
     global CHANNELS
+    global DATE_LIST
     global GK_ROLE
     global CDNTR_ROLE
 
@@ -103,6 +107,9 @@ def loadConfig(client):
             d = CONFIG['data'][0]
             STATE = state(d['STATE'])
             CHANNELS = d['CHANNELS']
+            DATE_LIST = d['DATE_LIST']
+            for ii in DATE_LIST:
+                print(ii)
             GK_ROLE = d['GK_ROLE']
             CDNTR_ROLE = d['CDNTR_ROLE']
     else: # need to create a new config
@@ -150,6 +157,7 @@ def loadBallotInfo():
         totalGames = data['TOTAL_GAMES']
         useEveryone = True if data['EVERYONE'].capitalize() == 'True' else False
 
+
         playerList = {}
         newMatrix = {}
         for ii in matrix:
@@ -163,6 +171,7 @@ def loadBallotInfo():
 
 # takes in a dictionary of votes
 def getGameDate(votes):
+    global DATE_LIST
     voteTally = []
     for ii in range(0, DATE_LIMIT):
         voteTally.append(0)
@@ -309,6 +318,7 @@ async def on_message(message):
     global STATE
     global VOTES
     global GAME_LIST
+    global DATE_LIST
     global DONE_VOTING
     global FINAL_DATE
     global FINAL_GAME

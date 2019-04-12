@@ -59,13 +59,13 @@
             <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Margin="0,25,0,5">Discord IDs</Label>
             <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the ID of your Game Knight Bot role.">Game Knight Role:</Label>
             <TextBox Name="GameKnightRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Role ID Here" 
-                     TextChanged="GameKnightRole_box_TextChanged"/>
+                     LostFocus="GameKnightRole_box_TextChanged"/>
             <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the desired role ID of the Game Night Coordinator.">Coordinator Role:</Label>
             <TextBox Name="CoordinatorRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Role ID Here" 
-                     TextChanged="CoordinatorRole_box_TextChanged"/>
+                     LostFocus="CoordinatorRole_box_TextChanged"/>
             <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the channel that Game Knight operates through.">Game Knight Channel:</Label>
             <TextBox Name="GameKnightChannel_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Channel ID Here"
-                     TextChanged="GameKnightChannel_box_TextChanged"/>
+                     LostFocus="GameKnightChannel_box_TextChanged"/>
         </StackPanel>
         <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,10,674,380"><Run Text="Ignore List"/></TextBlock>
         <Canvas Grid.Row="1">
@@ -85,12 +85,12 @@
                 </Button.Background>
             </Button>
         </Canvas>
-        <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,165,674,225"><Run Text="Date Choices"/></TextBlock>
         <Canvas Grid.Row="1">
+            <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,165,674,225"><Run Text="RSVP Options"/></TextBlock>
             <ListBox Name="DateList_box" Background="#333231" Foreground="#f0ede8" Height="56" Canvas.Left="10" Canvas.Top="195" 
-                     Width="143"/>
+                     Width="119"/>
         </Canvas>
-        <Button Click="LetsPlay" Margin="282,349,277.667,12" Content="Let's Play!" FontSize="37" FontWeight="Bold" 
+        <Button Click="LetsPlay" Margin="281,339,278.667,10" Content="Let's Play!" FontSize="37" FontWeight="Bold" 
                 Foreground="#FFDCD05F" Background="#FF858585"/>
         <TextBlock TextWrapping="Wrap" Foreground="#FFC5BC67" FontSize="12" Margin="175,375,549,24" FontFamily="Viner Hand ITC"
                    TextDecorations="{x:Null}"><Run Text="Version 1.0"/></TextBlock>
@@ -111,17 +111,30 @@
         <Image x:Name="GK_Standing_img" HorizontalAlignment="Left" Height="150" Width="150" Margin="-39,301,0,-30" VerticalAlignment="Top" Source="Images/GameKnight_Standing.png" RenderTransformOrigin="0.5,0.5"/>
         <Image x:Name="GK_Title_img" HorizontalAlignment="Left" Height="194" Width="199" Margin="26,261,0,-34" VerticalAlignment="Top" Source="Images/GameKnight_Title_Image.png" RenderTransformOrigin="0.5,0.5"/>
         <Grid>
-            <DatePicker HorizontalAlignment="Left" Margin="165,197,0,0" VerticalAlignment="Top"/>
-            <ComboBox x:Name="DateTime_cmbx" Margin="165,226,527,172" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12" SelectionChanged="BallotNumber_SelectionChanged" Height="23">
-                <ComboBoxItem IsSelected="True" Content="1:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                <ComboBoxItem IsSelected="True" Content="2:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                <ComboBoxItem IsSelected="False" Content="3:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                <ComboBoxItem IsSelected="False" Content="4:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                <ComboBoxItem IsSelected="False" Content="5:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                <ComboBoxItem IsSelected="False" Content="6:00pm" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-            </ComboBox>
+            <DatePicker Name="DateSelector_slct" HorizontalAlignment="Left" Margin="133,197,0,0" VerticalAlignment="Top" Width="111" BorderThickness="0"/>
+            <Canvas Grid.Row="1">
+                <ComboBox x:Name="DateTime_cmbx" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" 
+                      MaxDropDownHeight="90" Foreground="#333231" FontWeight="Bold" FontSize="12" SelectionChanged="BallotNumber_SelectionChanged" Height="23" Canvas.Left="136" Canvas.Top="227">
+                    <ComboBoxItem IsSelected="False" Content="1:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="2:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="3:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="4:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="5:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="True" Content="6:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="7:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="8:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="9:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="10:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="11:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="12:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                </ComboBox>
+                <ComboBox x:Name="AMPM_cmbx" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12" SelectionChanged="BallotNumber_SelectionChanged" Height="23" Canvas.Left="193" Canvas.Top="227">
+                    <ComboBoxItem IsSelected="True" Content="PM" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                    <ComboBoxItem IsSelected="False" Content="AM" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                </ComboBox>
+            </Canvas>
         </Grid>
-        <xctk:TimePicker x:Name="StartTime_tp" Margin="39,255,549,125" Format="Custom" FormatString="HH:mm tt" Value="{Binding CurrentDateTime}" >
-        </xctk:TimePicker>
+        <!--<xctk:TimePicker x:Name="StartTime_tp" Margin="39,255,549,125" Format="Custom" FormatString="HH:mm tt" Value="{Binding CurrentDateTime}" >
+        </xctk:TimePicker>-->
     </Grid>
 </Window>
