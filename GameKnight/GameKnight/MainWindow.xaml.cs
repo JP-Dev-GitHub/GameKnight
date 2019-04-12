@@ -73,6 +73,9 @@ namespace GameKnight
             PATH = PATH.Substring(0, PATH.IndexOf("GameKnight") + 10) + "\\";
             // update JSON data
             UpdateJsonData();
+            // if we are starting a new poll, clear the dates
+            if(data.state == 0)
+                data.dates.Clear();
             // Start Window
             InitializeComponent();
             UpdateGUI();
@@ -90,8 +93,12 @@ namespace GameKnight
         {
             foreach (var ii in data.ignoreList)
             {
-                Console.WriteLine(ii);
                 IgnoreList_box.Items.Insert(0, ii);
+            }
+
+            foreach (var ii in data.dates)
+            {
+                DateList_box.Items.Insert(0, ii.Substring(ii.IndexOf(", ") + 2));
             }
 
             UseBallot_chbx.IsChecked = data.useBallot;
@@ -417,15 +424,21 @@ namespace GameKnight
             string dateStr = selectedDT.ToString("dddd, dd MMMM yyyy");
             string timeStr = ((ComboBoxItem)DateTime_cmbx.SelectedItem).Content as string;
             string ampm = ((ComboBoxItem)AMPM_cmbx.SelectedItem).Content as string;
-            dateStr += " at " + timeStr + ampm; 
+            dateStr += " at " + timeStr + ampm;
+            string cbxStr = dateStr.Substring(dateStr.IndexOf(", ") + 2);
 
             data.dates.Add(dateStr);
-            DateList_box.Items.Insert(0, dateStr);
+            DateList_box.Items.Insert(0, cbxStr);
         }
 
         private void RemoveDate_Click(object sender, RoutedEventArgs e)
         {
-            //TODO
+            if(DateList_box.SelectedItem == null)
+                return;
+
+            int index = DateList_box.SelectedIndex;
+            data.dates.RemoveAt(index);
+            DateList_box.Items.RemoveAt(index);
         }
 
         private void IncludeEveryone_Checked(object sender, RoutedEventArgs e)
@@ -583,8 +596,9 @@ namespace GameKnight
             dic["MATRIX"] = matrix;
             dic["TOTAL_GAMES"] = data.useBallot ? data.totalGames : 1;
             dic["IGNORE_LIST"] = data.ignoreList;
+            dic["DATE_LIST"] = data.dates;
             dic["MASTER_GAME_LIST"] = data.games;
-            dic["STATE"] = 1;
+            dic["STATE"] = data.state;
             dic["CHANNELS"] = data.channels;
             dic["GK_ROLE"] = data.gameKnightID;
             dic["CDNTR_ROLE"] = data.coordinatorID;
@@ -645,6 +659,7 @@ namespace GameKnight
             data.useBallot = Convert.ToBoolean(JsonConvert.DeserializeObject<string>(jo["USE_BALLOT"].ToString().ToLower()));
             data.ignoreList = JsonConvert.DeserializeObject<List<string>>(jo["IGNORE_LIST"].ToString());
             data.games = JsonConvert.DeserializeObject<List<string>>(jo["MASTER_GAME_LIST"].ToString());
+            data.dates = JsonConvert.DeserializeObject<List<string>>(jo["DATE_LIST"].ToString());
             data.state = JsonConvert.DeserializeObject<int>(jo["STATE"].ToString());
             data.channels = JsonConvert.DeserializeObject<List<string>>(jo["CHANNELS"].ToString());
             data.gameKnightID = JsonConvert.DeserializeObject<string>(jo["GK_ROLE"].ToString());
