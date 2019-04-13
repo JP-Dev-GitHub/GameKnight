@@ -11,6 +11,7 @@
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
         <Thickness x:Key="tbMargin">0,30,0,0</Thickness>
+        <Thickness x:Key="discIdsMargin">0,10,0,0</Thickness>
     </Window.Resources>
     <Grid Background="#222222">
         <StackPanel HorizontalAlignment="Left" Margin="293,38,0,121" Width="212">
@@ -49,7 +50,7 @@
                 </Button.Background>
             </Button>
         </Canvas>
-        <StackPanel Margin="628,10,10.333,35.667">
+        <StackPanel Margin="628,0,10,271">
             <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Height="29" Margin="0,0,0,5">Application Options</Label>
             <CheckBox Name="IncludeEveryone_chbx" Foreground="#f0ede8" FontWeight="Bold" ToolTip="Check this box if you want to ensure everyone owns the games that are put on the ballot." 
                       Margin="0,5,0,0" IsChecked="True" Checked="IncludeEveryone_Checked" Unchecked="IncludeEveryone_Checked">Include Everyone</CheckBox>
@@ -63,17 +64,27 @@
                 <ComboBoxItem IsSelected="False" Content="5" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
                 <ComboBoxItem IsSelected="False" Content="6" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
             </ComboBox>
-            <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Margin="0,25,0,5">Discord IDs</Label>
-            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the desired role ID of the Game Night Coordinator.">Coordinator Role:</Label>
-            <TextBox Name="CoordinatorRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Role ID Here" 
+        </StackPanel>
+        <StackPanel Margin="628,139,10,10">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type Label}">
+                    <Setter Property="Margin" Value="{StaticResource discIdsMargin}"/>
+                </Style>
+            </StackPanel.Resources>
+            <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Margin="0, 0,0,-10" Content="Discord IDs"/>
+            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the desired role ID of the Game Night Coordinator." Content="Coordinator Role:"/>
+            <TextBox x:Name="CoordinatorRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Role ID Here" 
                      LostFocus="CoordinatorRole_box_TextChanged"/>
-            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the channel that Game Knight operates through.">Game Knight Channel:</Label>
-            <TextBox Name="GameKnightChannel_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Channel ID Here"
-                     LostFocus="GameKnightChannel_box_TextChanged"/>
             <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the ID of your Game Knight Bot. Ask your bot manager for the bot's Client ID."
-                   >Game Knight ID:</Label>
-            <TextBox Name="GameKnightID_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Client ID Here" 
+                   Content="Game Knight ID:"/>
+            <TextBox x:Name="GameKnightID_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Client ID Here" 
                      LostFocus="GameKnightID_box_TextChanged"/>
+            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the channel that Game Knight operates through." Content="Game Knight Channel:"/>
+            <TextBox x:Name="GameKnightChannel_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Channel ID Here"
+                     LostFocus="GameKnightChannel_box_TextChanged"/>
+            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is your unique Server Token." Content="Server Token:"/>
+            <TextBox x:Name="ServerToken_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Server Token Here"
+                     LostFocus="ServerToken_box_TextChanged"/>
         </StackPanel>
         <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,114,673.667,276"><Run Text="Ignore List"/></TextBlock>
         <Canvas Grid.Row="1">

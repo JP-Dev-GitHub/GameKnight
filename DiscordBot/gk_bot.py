@@ -42,7 +42,6 @@ class state(IntFlag):
     REROLLING = 5
 
 STATE = state.NEW_POLL
-GK_CHANNEL = 511721787604729866
 
 ################################   FUNCTIONS   ################################
 
