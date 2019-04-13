@@ -66,6 +66,7 @@ namespace GameKnight
         public dynamic array;
         public DataStore data;
         public bool initialized = false;
+        public Process gkProc;
 
         public MainWindow()
         {
@@ -84,6 +85,9 @@ namespace GameKnight
 
         private void Window_Closed(object sender, EventArgs e)
         {
+            // Close GK process
+            if(gkProc != null)
+                gkProc.Close();
             // Save when the app closes
             SaveJson(PATH + @"ballot_info.json");
         }
@@ -105,7 +109,7 @@ namespace GameKnight
             IncludeEveryone_chbx.IsChecked = data.useEveryone;
             if(data.totalGames > 1)
                 BallotNum_cmbx.SelectedItem = BallotNum_cmbx.Items.GetItemAt(data.totalGames-2);
-            GameKnightRole_box.Text = data.gameKnightID;
+            GameKnightID_box.Text = data.gameKnightID;
             CoordinatorRole_box.Text = data.coordinatorID;
             GameKnightChannel_box.Text = data.gameKnightChannel;
         }
@@ -114,6 +118,22 @@ namespace GameKnight
         {
             UpdateJsonData();
             MessageBox.Show("Refreshed!");
+        }
+
+        private void Kill_Click(object sender, RoutedEventArgs e)
+        {
+            if (gkProc == null)
+            {
+                MessageBox.Show("Game Knight Bot is not running!");
+                return;
+            }
+                
+            string question = "Are you sure you want to terminate Game Knight BOT?\n\n*WARNING*: All current poll data will be lost!";
+            if (MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+                return;
+            if (gkProc != null)
+                gkProc.Close();
+            MessageBox.Show("Game Knight has stopped running!");
         }
 
         // Returns the index of the found duplicate, and -1 if there was no duplicate found
@@ -347,10 +367,10 @@ namespace GameKnight
                 string question = "*WARNING* There is already a poll in progress!\n    Do you want to start a new one?\n    (all vote data will be lost)";
                 if (MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
                     return;
-                else
-                    data.state = 1;
             }
-            
+
+            data.state = 1;
+
             // Fetch all config data
             SaveJson(PATH + @"ballot_info.json");
             // Launch python bot
@@ -360,15 +380,16 @@ namespace GameKnight
                 string cmd = "python " + PATH + @"DiscordBot\gk_bot.py ";
 
                 Console.WriteLine(cmd);
-                Process p = new Process();
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardInput = true;
-                p.StartInfo.RedirectStandardOutput = false;
-                // TODO: CHANGE THIS BACK TO true
-                p.StartInfo.CreateNoWindow = false;
-                p.StartInfo.FileName = "CMD.exe";
-                p.StartInfo.Arguments = "/c " + cmd;
-                p.Start();
+                gkProc = new Process();
+                gkProc.StartInfo.UseShellExecute = false;
+                gkProc.StartInfo.RedirectStandardInput = true;
+                gkProc.StartInfo.RedirectStandardOutput = false;
+                gkProc.StartInfo.CreateNoWindow = true;
+                gkProc.StartInfo.FileName = "CMD.exe";
+                gkProc.StartInfo.Arguments = "/c " + cmd;
+                gkProc.Start();
+
+                MessageBox.Show("Game Knight is now active. Dilly dilly!");
             }
             catch (Exception ex)
             {
@@ -385,10 +406,11 @@ namespace GameKnight
             // ensure an entry was made
             if (newGame == "" || newGame == startString)
                 return;
+            int gameIndex = CheckForDuplicate(newGame, "game");
             // check that its on the game list
-            if (CheckForDuplicate(newGame, "game") < 0)
+            if (gameIndex < 0)
             {
-                MessageBox.Show(newGame + " is not a recognized game on the list. You can add it using 'Add New Game' button.");
+                MessageBox.Show(newGame + " is not a recognized game on the google sheet.\nYou can add it using 'Add New Game' button.");
                 return;
             }
             // check that its a duplicate
@@ -398,8 +420,8 @@ namespace GameKnight
                 return;
             }
 
-            data.ignoreList.Add(newGame);
-            IgnoreList_box.Items.Insert(0, newGame);
+            data.ignoreList.Add(data.games[gameIndex]);
+            IgnoreList_box.Items.Insert(0, data.games[gameIndex]);
         }
 
         private void RemoveIgnore_Click(object sender, RoutedEventArgs e)
@@ -421,11 +443,12 @@ namespace GameKnight
             }
 
             DateTime selectedDT = (DateTime)DateSelector_slct.SelectedDate;
-            string dateStr = selectedDT.ToString("dddd, dd MMMM yyyy");
+            string dateStr = selectedDT.ToString("dddd, MM/dd");
             string timeStr = ((ComboBoxItem)DateTime_cmbx.SelectedItem).Content as string;
             string ampm = ((ComboBoxItem)AMPM_cmbx.SelectedItem).Content as string;
             dateStr += " at " + timeStr + ampm;
-            string cbxStr = dateStr.Substring(dateStr.IndexOf(", ") + 2);
+            //string cbxStr = dateStr.Substring(dateStr.IndexOf(", ") + 2);
+            string cbxStr = dateStr.Remove(dateStr.IndexOf(":00"), 3);
 
             data.dates.Add(dateStr);
             DateList_box.Items.Insert(0, cbxStr);
@@ -467,16 +490,16 @@ namespace GameKnight
                 data.totalGames = 2; // default
         }
 
-        private void GameKnightRole_box_TextChanged(object sender, RoutedEventArgs e)
+        private void GameKnightID_box_TextChanged(object sender, RoutedEventArgs e)
         {
             if (!initialized)
                 return;
             string def = "Ex: 123456789012345678";
-            string txt = GameKnightRole_box.Text;
+            string txt = GameKnightID_box.Text;
 
             if (txt.Length != DISCORD_ID_LENGTH)
             {
-                GameKnightRole_box.Text = def;
+                GameKnightID_box.Text = def;
                 return;
             }
 
@@ -581,7 +604,7 @@ namespace GameKnight
 
         // Gets currently stored DataStore (matrix, game list, users)
         // and adds new variables to the JSON like:
-        // EVERYONE, TOTAL_GAMES, STATE, CHANNELS, GK_ROLE, and CDNTR_ROLE
+        // EVERYONE, TOTAL_GAMES, STATE, CHANNELS, GK_ID, and CDNTR_ROLE
         public void SaveJson(string fp)
         {
             Console.WriteLine("Saving JSON data...");
@@ -600,7 +623,7 @@ namespace GameKnight
             dic["MASTER_GAME_LIST"] = data.games;
             dic["STATE"] = data.state;
             dic["CHANNELS"] = data.channels;
-            dic["GK_ROLE"] = data.gameKnightID;
+            dic["GK_ID"] = data.gameKnightID;
             dic["CDNTR_ROLE"] = data.coordinatorID;
             dic["GK_CHANNEL"] = data.gameKnightChannel;
             dic["USE_BALLOT"] = data.useBallot.ToString();
@@ -662,7 +685,7 @@ namespace GameKnight
             data.dates = JsonConvert.DeserializeObject<List<string>>(jo["DATE_LIST"].ToString());
             data.state = JsonConvert.DeserializeObject<int>(jo["STATE"].ToString());
             data.channels = JsonConvert.DeserializeObject<List<string>>(jo["CHANNELS"].ToString());
-            data.gameKnightID = JsonConvert.DeserializeObject<string>(jo["GK_ROLE"].ToString());
+            data.gameKnightID = JsonConvert.DeserializeObject<string>(jo["GK_ID"].ToString());
             data.coordinatorID = JsonConvert.DeserializeObject<string>(jo["CDNTR_ROLE"].ToString());
             data.gameKnightChannel = JsonConvert.DeserializeObject<string>(jo["GK_CHANNEL"].ToString());
 

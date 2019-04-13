@@ -106,7 +106,9 @@ if __name__ == "__main__":
     sheet = getSheet(PATH + "\\client_secret.json")
     data_path = PATH + "\\ballot_info.json"
     
-    if DIRECTIVE == 1: # insert a new user into the google sheet
+    if DIRECTIVE == 0: # only update gspread sheet
+        updateData(sheet, data_path)
+    elif DIRECTIVE == 1: # insert a new user into the google sheet
         insertNewUser(sys.argv[2], sheet)
         updateData(sheet, data_path)
     elif DIRECTIVE == 2: # insert a new game into the google sheet
@@ -121,7 +123,3 @@ if __name__ == "__main__":
     else:
         print("WARNING: NO DIRECTIVE ARGUMENT USED!")
         pass
-        # with open(PATH + "test.json", 'r') as f:
-        #     oldData = json.load(f)
-        #     for ii in oldData['MATRIX']:
-        #         print(ii)

@@ -137,6 +137,7 @@
     <Resource Include="Images\GameKnight_Title_Image.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\killbutton.png" />
     <Content Include="Xceed\de\Xceed.Wpf.AvalonDock.resources.dll" />
     <Content Include="Xceed\es\Xceed.Wpf.AvalonDock.resources.dll" />
     <Content Include="Xceed\fr\Xceed.Wpf.AvalonDock.resources.dll" />

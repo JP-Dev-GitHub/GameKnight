@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GameKnight"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         ResizeMode="CanMinimize"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
@@ -12,8 +13,7 @@
         <Thickness x:Key="tbMargin">0,30,0,0</Thickness>
     </Window.Resources>
     <Grid Background="#222222">
-        <StackPanel HorizontalAlignment="Left" Margin="293,20,0,83" Width="212">
-            <!--old button color = FF8F5CE1-->
+        <StackPanel HorizontalAlignment="Left" Margin="293,38,0,121" Width="212">
             <Button Name="NewGame_btn" Click="AddNewGame" Background="#FF858585" Foreground="#FFDCD05F" FontSize="18" FontWeight="Bold" Height="30"
                     Margin="0,0,0,0"
                     ToolTip="Add a new game to the google sheet. Default for all users is 0 (i.e. no one owns the game)">Add New Game</Button>
@@ -27,7 +27,6 @@
                     Height="30" ToolTip="Delete a user from the sheet, all ownership data for this user will be lost!">Remove User</Button>
             <Button Name="CheckOwnership_btn" Click="CheckGame" Background="#FF858585" Foreground="#FFDCD05F" FontSize="18" FontWeight="Bold" Height="30"
                     ToolTip="Check who owns a specified game.">Check Game Ownership</Button>
-            <!--old button color = FF8F5CE1-->
             <StackPanel.Resources>
                 <Style TargetType="{x:Type Button}">
                     <Setter Property="Margin" Value="{StaticResource tbMargin}"/>
@@ -35,10 +34,18 @@
             </StackPanel.Resources>
         </StackPanel>
         <Canvas Grid.Row="1">
-            <Button Click="Refresh_Click" Width="38" Height="38" Margin="523,20,241.667,372" 
-                    ToolTip="Refresh - Sync any manual changes you've made to the Google Sheet">
+            <Button Click="Refresh_Click" Width="38" Height="38" BorderThickness="0"
+                    ToolTip="Refresh - Sync any manual changes you've made to the Google Sheet" Canvas.Left="520" Canvas.Top="346">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/temp_sync.png" Stretch="Uniform"/>
+                </Button.Background>
+            </Button>
+        </Canvas>
+        <Canvas Grid.Row="1">
+            <Button Click="Kill_Click" Width="38" Height="38" BorderThickness="0" 
+                    ToolTip="Killswitch - End a poll by killing Game Knight process." Canvas.Left="565" Canvas.Top="346">
+                <Button.Background>
+                    <ImageBrush ImageSource="Images/killbutton.png" Stretch="Uniform"/>
                 </Button.Background>
             </Button>
         </Canvas>
@@ -57,52 +64,55 @@
                 <ComboBoxItem IsSelected="False" Content="6" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
             </ComboBox>
             <Label Foreground="#FFE0E0E0" FontSize="14" FontWeight="Bold" Margin="0,25,0,5">Discord IDs</Label>
-            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the ID of your Game Knight Bot role.">Game Knight Role:</Label>
-            <TextBox Name="GameKnightRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Role ID Here" 
-                     LostFocus="GameKnightRole_box_TextChanged"/>
             <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the desired role ID of the Game Night Coordinator.">Coordinator Role:</Label>
             <TextBox Name="CoordinatorRole_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Role ID Here" 
                      LostFocus="CoordinatorRole_box_TextChanged"/>
             <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the channel that Game Knight operates through.">Game Knight Channel:</Label>
             <TextBox Name="GameKnightChannel_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Channel ID Here"
                      LostFocus="GameKnightChannel_box_TextChanged"/>
+            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the ID of your Game Knight Bot. Ask your bot manager for the bot's Client ID."
+                   >Game Knight ID:</Label>
+            <TextBox Name="GameKnightID_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Client ID Here" 
+                     LostFocus="GameKnightID_box_TextChanged"/>
         </StackPanel>
-        <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,10,674,380"><Run Text="Ignore List"/></TextBlock>
+        <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,114,673.667,276"><Run Text="Ignore List"/></TextBlock>
         <Canvas Grid.Row="1">
-            <ListBox Name="IgnoreList_box" Background="#333231" Foreground="#f0ede8" Height="116" Canvas.Left="10" Canvas.Top="40" Width="226"/>
+            <ListBox Name="IgnoreList_box" Background="#333231" Foreground="#f0ede8" Height="116" Canvas.Left="10" Canvas.Top="144" Width="159"/>
         </Canvas>
         <Canvas Grid.Row="1">
-            <Button Click="AddIgnore_Click" Height="30" Width="30" BorderThickness="0" Margin="0,5,0,0"
-                    ToolTip="Add a new game to the Ignore List." Canvas.Left="171">
+            <Button Click="AddIgnore_Click" Height="20" Width="20" BorderThickness="0"
+                    ToolTip="Add a new game to the Ignore List." Canvas.Left="131" Canvas.Top="117">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/plus.png" Stretch="Uniform"/>
                 </Button.Background>
             </Button>
-            <Button Click="RemoveIgnore_Click" Height="30" Width="30" BorderThickness="0" Margin="0,5,0,0"
-                        ToolTip="Remove a game from the ignore list." Canvas.Left="206">
+            <Button Click="RemoveIgnore_Click" Height="20" Width="20" BorderThickness="0"
+                        ToolTip="Remove a game from the ignore list." Canvas.Left="151" Canvas.Top="117">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/minus.png" Stretch="Uniform"/>
                 </Button.Background>
             </Button>
         </Canvas>
         <Canvas Grid.Row="1">
-            <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,165,674,225"><Run Text="RSVP Options"/></TextBlock>
-            <ListBox Name="DateList_box" Background="#333231" Foreground="#f0ede8" Height="56" Canvas.Left="10" Canvas.Top="195" 
-                     Width="139" ScrollViewer.HorizontalScrollBarVisibility="Hidden"/>
+            <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Canvas.Left="10" Canvas.Top="10"><Run Text="RSVP Options"/></TextBlock>
+            <ListBox Name="DateList_box" Background="#333231" Foreground="#f0ede8" Height="56" Canvas.Left="10" Canvas.Top="38" 
+                     Width="160" ScrollViewer.HorizontalScrollBarVisibility="Hidden"/>
         </Canvas>
-        <Button Click="LetsPlay" Margin="281,323,279,26" Content="Let's Play!" FontSize="37" FontWeight="Bold" 
-                Foreground="#FFDCD05F" Background="#FF858585"/>
+        <Canvas Grid.Row="1">
+            <Button Click="LetsPlay" Content="Let's Play!" FontSize="37" FontWeight="Bold" 
+                Foreground="#FFDCD05F" Background="#FF858585" Height="65" Canvas.Left="280" Canvas.Top="332" Width="225"/>
+        </Canvas>
         <TextBlock TextWrapping="Wrap" Foreground="#FFC5BC67" FontSize="12" Margin="175,375,549,24" FontFamily="Viner Hand ITC"
                    TextDecorations="{x:Null}"><Run Text="Version 1.0"/></TextBlock>
         <Canvas Grid.Row="1">
-            <Button Click="AddDate_Click" Height="30" Width="30" BorderThickness="0"
-                    ToolTip="Add a new game to the Ignore List." Canvas.Left="173" Canvas.Top="164">
+            <Button Click="AddDate_Click" Height="20" Width="20" BorderThickness="0"
+                    ToolTip="Add a date to the RSVP options." Canvas.Left="131" Canvas.Top="13">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/plus.png" Stretch="Uniform"/>
                 </Button.Background>
             </Button>
-            <Button Click="RemoveDate_Click" Height="30" Width="30" BorderThickness="0"
-                        ToolTip="Remove a game from the ignore list." Canvas.Left="208" Canvas.Top="164">
+            <Button Click="RemoveDate_Click" Height="20" Width="20" BorderThickness="0"
+                        ToolTip="Remove a date from the RSVP options." Canvas.Left="151" Canvas.Top="13">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/minus.png" Stretch="Uniform"/>
                 </Button.Background>
@@ -111,26 +121,28 @@
         <Image x:Name="GK_Standing_img" HorizontalAlignment="Left" Height="150" Width="150" Margin="-39,301,0,-30" VerticalAlignment="Top" Source="Images/GameKnight_Standing.png" RenderTransformOrigin="0.5,0.5"/>
         <Image x:Name="GK_Title_img" HorizontalAlignment="Left" Height="194" Width="199" Margin="26,261,0,-34" VerticalAlignment="Top" Source="Images/GameKnight_Title_Image.png" RenderTransformOrigin="0.5,0.5"/>
         <Grid>
-            <DatePicker Name="DateSelector_slct" HorizontalAlignment="Left" Margin="155,197,0,0" VerticalAlignment="Top" Width="111" BorderThickness="0"/>
+            <DatePicker Name="DateSelector_slct" SelectedDate="{x:Static sys:DateTime.Now}" HorizontalAlignment="Left" Margin="176,37,0,0" VerticalAlignment="Top" Width="108" BorderThickness="0" Height="36" RenderTransformOrigin="0.307,0.519"/>
             <Canvas Grid.Row="1">
                 <ComboBox x:Name="DateTime_cmbx" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" 
-                      MaxDropDownHeight="90" Foreground="#333231" FontWeight="Bold" FontSize="12" SelectionChanged="BallotNumber_SelectionChanged" Height="23" Canvas.Left="157" Canvas.Top="227" Width="53">
-                    <ComboBoxItem IsSelected="False" Content="1:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="2:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="3:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="4:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="5:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="True" Content="6:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="7:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="8:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="9:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="10:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="11:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="12:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                      MaxDropDownHeight="90" Foreground="#333231" FontWeight="Bold" FontSize="11" 
+                          SelectionChanged="BallotNumber_SelectionChanged" Height="23" Canvas.Left="177" Canvas.Top="63" Width="52">
+                    <ComboBoxItem IsSelected="False" Content="1:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="2:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="3:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="4:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="5:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="True" Content="6:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="7:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="8:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="9:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="10:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="11:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="12:00" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
                 </ComboBox>
-                <ComboBox x:Name="AMPM_cmbx" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12" SelectionChanged="BallotNumber_SelectionChanged" Height="23" Canvas.Left="215" Canvas.Top="227">
-                    <ComboBoxItem IsSelected="True" Content="PM" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
-                    <ComboBoxItem IsSelected="False" Content="AM" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="12"/>
+                <ComboBox x:Name="AMPM_cmbx" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11" 
+                          SelectionChanged="BallotNumber_SelectionChanged" Height="23" Canvas.Left="232" Canvas.Top="63" Width="47">
+                    <ComboBoxItem IsSelected="True" Content="PM" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
+                    <ComboBoxItem IsSelected="False" Content="AM" Background="#FFE2E2E2" BorderBrush="#FFE2E2E2" Foreground="#333231" FontWeight="Bold" FontSize="11"/>
                 </ComboBox>
             </Canvas>
         </Grid>
