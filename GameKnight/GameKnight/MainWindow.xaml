@@ -82,9 +82,9 @@
             <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is the channel that Game Knight operates through." Content="Game Knight Channel:"/>
             <TextBox x:Name="GameKnightChannel_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Channel ID Here"
                      LostFocus="GameKnightChannel_box_TextChanged"/>
-            <Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is your unique Server Token." Content="Server Token:"/>
+            <!--<Label Foreground="#FFE0E0E0" FontWeight="Bold" ToolTip="This is your unique Server Token." Content="Server Token:"/>
             <TextBox x:Name="ServerToken_box" Background="#333231" Foreground="#f0ede8" Height="23" TextWrapping="Wrap" Text="Server Token Here"
-                     LostFocus="ServerToken_box_TextChanged"/>
+                     LostFocus="ServerToken_box_TextChanged"/>-->
         </StackPanel>
         <TextBlock TextWrapping="Wrap" Foreground="#FFE0E0E0" FontSize="17" FontWeight="Bold" Margin="10,114,673.667,276"><Run Text="Ignore List"/></TextBlock>
         <Canvas Grid.Row="1">

@@ -22,7 +22,7 @@ DATE_LIMIT = 3
 CONFIG = {}
 BOT_ID = 0
 CDNTR_ID = 0
-CHANNELS = []
+CHANNEL_ID = ''
 
 GAME_LIST = []
 DATE_LIST = []
@@ -76,7 +76,7 @@ def loadConfig(client):
     global STATE
     global BOT_ID
     global CDNTR_ID
-    global CHANNELS
+    global CHANNEL_ID
     global DATE_LIST
     global CDNTR_ROLE
 
@@ -86,7 +86,7 @@ def loadConfig(client):
             d = json.load(f)
             STATE = state(d['STATE'])
             print("loaded state: " + str(d['STATE']))
-            CHANNELS = d['CHANNELS']
+            CHANNEL_ID = int(d['CHANNEL_ID'])
             DATE_LIST = d['DATE_LIST']
             BOT_ID = int(d['GK_ID'])
             CDNTR_ROLE = d['CDNTR_ROLE']
@@ -277,7 +277,7 @@ async def on_ready():
     print(STATE)
     if STATE == state.NEW_POLL:
         for channel in client.get_all_channels():
-            if  channel.name in CHANNELS:
+            if str(channel.id) == CHANNEL_ID:
                 #await channel.send('WTF is a :one:?') # test message
                 await channel.send(":trumpet: @everyone :trumpet: Hear ye! Hear ye! A call for aid from Lord Game-Night-Coordinator!\n" +
                     "A new Game Cruscade is upon us! Will you answer the call to glory?\n" +
@@ -308,8 +308,8 @@ async def on_message(message):
     msg = message.content
     is_direct_msg = isinstance(message.channel, discord.abc.PrivateChannel)
     
-    # only active in certain channels
-    if str(message.channel) not in CHANNELS and not is_direct_msg:
+    # only active in GK channel
+    if str(message.channel.id) != CHANNEL_ID and not is_direct_msg:
         return
 
 ################################    COMMANDS    ################################

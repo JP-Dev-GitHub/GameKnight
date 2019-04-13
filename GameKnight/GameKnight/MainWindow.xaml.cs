@@ -87,7 +87,7 @@ namespace GameKnight
         {
             // Close GK process
             if(gkProc != null)
-                gkProc.Close();
+                gkProc.Kill();
             // Save when the app closes
             SaveJson(PATH + @"ballot_info.json");
         }
@@ -132,7 +132,7 @@ namespace GameKnight
             if (MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
                 return;
             if (gkProc != null)
-                gkProc.Close();
+                gkProc.Kill();
             MessageBox.Show("Game Knight has stopped running!");
         }
 
