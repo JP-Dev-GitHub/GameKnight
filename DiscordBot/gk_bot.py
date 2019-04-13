@@ -86,7 +86,7 @@ def loadConfig(client):
             d = json.load(f)
             STATE = state(d['STATE'])
             print("loaded state: " + str(d['STATE']))
-            CHANNEL_ID = int(d['CHANNEL_ID'])
+            CHANNEL_ID = int(d['GK_CHANNEL'])
             DATE_LIST = d['DATE_LIST']
             BOT_ID = int(d['GK_ID'])
             CDNTR_ROLE = d['CDNTR_ROLE']
@@ -257,6 +257,28 @@ def getFinalGame(GAME_LIST, gameVotes):
     #print('Have to return: ' + str(ii) + ", " + GAME_LIST[len(GAME_LIST) - 1])
     return GAME_LIST[len(GAME_LIST) - 1]
 
+
+def reset():
+    global STATE
+    global DATE_LIST
+    global VOTES
+    global GAME_LIST
+    global FINAL_DATE
+    global FINAL_GAME
+    global REROLL_VOTERS
+    global DONE_VOTING
+    global TOTAL_PLAYERS
+
+    STATE = state.NEW_POLL
+    VOTES = {}
+    GAME_LIST = []
+    FINAL_DATE = ''
+    FINAL_GAME = ''
+    DONE_VOTING = {}
+    REROLL_VOTERS = {}
+    TOTAL_PLAYERS = 0
+
+
 ################################   Main()   ################################
 
 x = os.getcwd()
@@ -274,19 +296,22 @@ async def on_ready():
     global CDNTR_ROLE
 
     loadConfig(client)
-    print(STATE)
-    if STATE == state.NEW_POLL:
-        for channel in client.get_all_channels():
-            if str(channel.id) == CHANNEL_ID:
-                #await channel.send('WTF is a :one:?') # test message
-                await channel.send(":trumpet: @everyone :trumpet: Hear ye! Hear ye! A call for aid from Lord Game-Night-Coordinator!\n" +
-                    "A new Game Cruscade is upon us! Will you answer the call to glory?\n" +
-                    "Please **!vote** here for **ALL** RSVP options below that you can attend (you can DM me as well, if you're a coward): ")
-                for ii in range(0, len(DATE_LIST)):
-                    await channel.send('{0}   **-   {1}**'.format(EMOJI_TEXT[ii], DATE_LIST[ii]) + '\n')
-                STATE = state.W4_RSVP
-                saveState()
-                print('NEW RSVP FINISHED, STARTING W4RSVP...')
+    STATE = state.NEW_POLL
+
+    for channel in client.get_all_channels():
+        if channel.id == CHANNEL_ID:
+            await channel.send("Greetings! I am here to assist you in your game selection!")
+    # if STATE == state.NEW_POLL:
+    #     for channel in client.get_all_channels():
+    #         if channel.id == CHANNEL_ID:
+    #             await channel.send(":trumpet: @everyone :trumpet: Hear ye! Hear ye! A call for aid from Lord Game-Night-Coordinator!\n" +
+    #                 "A new Game Cruscade is upon us! Will you answer the call to glory?\n" +
+    #                 "Please **!vote** here for **ALL** RSVP options below that you can attend (you can DM me as well, if you're a coward): ")
+    #             for ii in range(0, len(DATE_LIST)):
+    #                 await channel.send('{0}   **-   {1}**'.format(EMOJI_TEXT[ii], DATE_LIST[ii]) + '\n')
+    #             STATE = state.W4_RSVP
+    #             saveState()
+    #             print('NEW RSVP FINISHED, STARTING W4RSVP...')
 
 @client.event
 async def on_message(message):
@@ -309,17 +334,20 @@ async def on_message(message):
     is_direct_msg = isinstance(message.channel, discord.abc.PrivateChannel)
     
     # only active in GK channel
-    if str(message.channel.id) != CHANNEL_ID and not is_direct_msg:
+    if message.channel.id != CHANNEL_ID and not is_direct_msg:
         return
 
-################################    COMMANDS    ################################
-    
+    if is_direct_msg and id not in VOTES:
+        return
+
     if STATE != state.REROLLING:
-        if id == BOT_ID: # ignore our own messages
+        # ignore our own messages
+        if STATE != state.NEW_POLL and id == BOT_ID:
             return
     else: # STATE = REROLLING so we need to continue to the W4_VOTE state
         STATE = state.W4_VOTE
         saveState()
+################################    COMMANDS    ################################
     
     # !HELP COMMAND
     if (msg.find("!commands") != -1) or (msg.find("!help") != -1):
@@ -331,14 +359,19 @@ async def on_message(message):
         "      -      **!veto**  :  Each player can use a veto command once when a game as been selected. If **more than half** the player veto, " +
                                 "then ballot is rerolled.\n" +
         "      -      **!close**  :  [Coordinator CMD] Close the current RSVP poll. **No other users can join the poll after this command is used!**\n" +
-        "      -      **!kill / !done**  :  [Coordinator CMD] Terminate the active poll. Use this when a poll is completed or " +
+        "      -      **!reset**  :  [Coordinator CMD] Close the current RSVP poll. **No other users can join the poll after this command is used!**\n" +
+        "      -      **!kill**  :  [Coordinator CMD] Terminate the active poll. Use this when a poll is completed or " +
                                 "you want to restart. **WARNING: This will delete ALL current poll data!**\n\n")
+        return
 
     # !KILL COMMAND
-    if (msg.find("!kill") != -1 or msg.find("!done") != -1) and id == CDNTR_ID:
+    if (msg.find("!kill") != -1) and id == CDNTR_ID:
         await message.channel.send("We've been routed! The battle is lost! Fall back, men!!  :arrow_left::horse_racing:\n" + 
             ":robot: **Poll has been terminated** :robot:")
         exit(0)
+    # !RESET COMMAND
+    if msg.find("!reset") != -1 and id == CDNTR_ID:
+        reset()
 
     # # !STATUS COMMAND
     if msg.find("!status") != -1:
@@ -357,7 +390,18 @@ async def on_message(message):
 
 ################################    STATE LOGIC    ################################
 
-    if STATE == state.W4_RSVP:
+    if STATE == state.NEW_POLL:
+        for channel in client.get_all_channels():
+            if channel.id == CHANNEL_ID:
+                STATE = state.W4_RSVP
+                await channel.send(":trumpet: @everyone :trumpet: Hear ye! Hear ye! A call for aid from Lord Game-Night-Coordinator!\n" +
+                    "A new Game Cruscade is upon us! Will you answer the call to glory?\n" +
+                    "Please **!vote** here for **ALL** RSVP options below that you can attend (you can DM me as well, if you're a coward): ")
+                for ii in range(0, len(DATE_LIST)):
+                    await channel.send('{0}   **-   {1}**'.format(EMOJI_TEXT[ii], DATE_LIST[ii]) + '\n')
+                saveState()
+                print('NEW RSVP FINISHED, STARTING W4RSVP...')
+    elif STATE == state.W4_RSVP:
         if id == CDNTR_ID: # coordinator issued that the date vote be closed
             if message.content.find("!close") != -1:
                 FINAL_DATE = getGameDate(VOTES)
@@ -390,6 +434,7 @@ async def on_message(message):
                     saveState()
                 print('FINISHED W4_RSVP, STARTING W4_VOTE...')
 
+
         # check if the player voted for a date
         if message.content.find("!vote") != -1:
             validVote = False
@@ -403,9 +448,9 @@ async def on_message(message):
                 if ii < DATE_LIMIT and not validVote and (x.find(NCAP_DEFINES[ii+1]) != -1 or x.find(str(ii+1)) != -1):
                     VOTES[id][ii] += 1
                     validVote = True
-            print(nickname + " voted for:")
-            for ii in VOTES[id]:
-                print(ii)
+            #print(nickname + " voted for:")
+            #for ii in VOTES[id]:
+            #    print(ii)
 
             # check that the vote is a valid response
             if validVote:
@@ -420,6 +465,7 @@ async def on_message(message):
                 await message.channel.send("I'm terribly sorry " + nickname + ", but that's not a valid option... \n" +
                     "Why don't you give it another shot?\n" + 
                     "Make sure to use numbers or emojis! \ni.e. !vote 1 or !vote :three:")
+
     elif STATE == state.W4_VOTE:
         if len(GAME_LIST) > 1:
             if message.content.find("!vote") != -1:
@@ -466,6 +512,7 @@ async def on_message(message):
                     await message.channel.send("I'm terribly sorry " + nickname + ", but that's not a valid option... \n" +
                         "Why don't you give it another shot?\n" + 
                         "Make sure to use emojis or numbers :wink:\ni.e. !vote :one:, :two:, :three: or 1, 2, 3 etc.")
+
     elif STATE == state.VETO:
         if message.content.find("!veto") != -1:
             if id not in REROLL_VOTERS:

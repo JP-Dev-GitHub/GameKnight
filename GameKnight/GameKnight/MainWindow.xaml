@@ -36,15 +36,15 @@
         </StackPanel>
         <Canvas Grid.Row="1">
             <Button Click="Refresh_Click" Width="38" Height="38" BorderThickness="0"
-                    ToolTip="Refresh - Sync any manual changes you've made to the Google Sheet" Canvas.Left="520" Canvas.Top="346">
+                    ToolTip="Refresh - Sync any manual changes you've made to the Google Sheet" Canvas.Left="651" Canvas.Top="358">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/temp_sync.png" Stretch="Uniform"/>
                 </Button.Background>
             </Button>
         </Canvas>
         <Canvas Grid.Row="1">
-            <Button Click="Kill_Click" Width="38" Height="38" BorderThickness="0" 
-                    ToolTip="Killswitch - End a poll by killing Game Knight process." Canvas.Left="565" Canvas.Top="346">
+            <Button Click="Kill_Click" Width="45" Height="42" BorderThickness="0" 
+                    ToolTip="Killswitch - End a poll by killing Game Knight process." Canvas.Left="710" Canvas.Top="356">
                 <Button.Background>
                     <ImageBrush ImageSource="Images/killbutton.png" Stretch="Uniform"/>
                 </Button.Background>
@@ -111,7 +111,7 @@
         </Canvas>
         <Canvas Grid.Row="1">
             <Button Click="LetsPlay" Content="Let's Play!" FontSize="37" FontWeight="Bold" 
-                Foreground="#FFDCD05F" Background="#FF858585" Height="65" Canvas.Left="280" Canvas.Top="332" Width="225"/>
+                Foreground="#FFDCD05F" Background="#FF858585" Height="69" Canvas.Left="280" Canvas.Top="332" Width="239"/>
         </Canvas>
         <TextBlock TextWrapping="Wrap" Foreground="#FFC5BC67" FontSize="12" Margin="175,375,549,24" FontFamily="Viner Hand ITC"
                    TextDecorations="{x:Null}"><Run Text="Version 1.0"/></TextBlock>

@@ -32,7 +32,6 @@ namespace GameKnight
         public List<string> games;
         public List<List<int>> matrix;
         public List<string> ignoreList;
-        public List<string> channels;
         public List<string> dates;
         public bool useEveryone;
         public bool useBallot;
@@ -86,7 +85,7 @@ namespace GameKnight
         private void Window_Closed(object sender, EventArgs e)
         {
             // Close GK process
-            if(gkProc != null)
+            if(gkProc.HasExited)
                 gkProc.Kill();
             // Save when the app closes
             SaveJson(PATH + @"ballot_info.json");
@@ -131,7 +130,7 @@ namespace GameKnight
             string question = "Are you sure you want to terminate Game Knight BOT?\n\n*WARNING*: All current poll data will be lost!";
             if (MessageBox.Show(question, "Question", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
                 return;
-            if (gkProc != null)
+            if (gkProc.HasExited)
                 gkProc.Kill();
             MessageBox.Show("Game Knight has stopped running!");
         }
@@ -604,7 +603,7 @@ namespace GameKnight
 
         // Gets currently stored DataStore (matrix, game list, users)
         // and adds new variables to the JSON like:
-        // EVERYONE, TOTAL_GAMES, STATE, CHANNELS, GK_ID, and CDNTR_ROLE
+        // EVERYONE, TOTAL_GAMES, STATE, GK_ID, GK_CH, and CDNTR_ROLE
         public void SaveJson(string fp)
         {
             Console.WriteLine("Saving JSON data...");
@@ -622,7 +621,6 @@ namespace GameKnight
             dic["DATE_LIST"] = data.dates;
             dic["MASTER_GAME_LIST"] = data.games;
             dic["STATE"] = data.state;
-            dic["CHANNELS"] = data.channels;
             dic["GK_ID"] = data.gameKnightID;
             dic["CDNTR_ROLE"] = data.coordinatorID;
             dic["GK_CHANNEL"] = data.gameKnightChannel;
@@ -684,7 +682,6 @@ namespace GameKnight
             data.games = JsonConvert.DeserializeObject<List<string>>(jo["MASTER_GAME_LIST"].ToString());
             data.dates = JsonConvert.DeserializeObject<List<string>>(jo["DATE_LIST"].ToString());
             data.state = JsonConvert.DeserializeObject<int>(jo["STATE"].ToString());
-            data.channels = JsonConvert.DeserializeObject<List<string>>(jo["CHANNELS"].ToString());
             data.gameKnightID = JsonConvert.DeserializeObject<string>(jo["GK_ID"].ToString());
             data.coordinatorID = JsonConvert.DeserializeObject<string>(jo["CDNTR_ROLE"].ToString());
             data.gameKnightChannel = JsonConvert.DeserializeObject<string>(jo["GK_CHANNEL"].ToString());
