@@ -23,6 +23,7 @@ CONFIG = {}
 BOT_ID = 0
 CDNTR_ID = 0
 CHANNEL_ID = ''
+CHANNEL = 0
 
 GAME_LIST = []
 DATE_LIST = []
@@ -79,7 +80,12 @@ def loadConfig(client):
     global CHANNEL_ID
     global DATE_LIST
     global CDNTR_ROLE
+    global CHANNEL
+    global GUILD
 
+
+
+#    if message.channel.id != CHANNEL_ID and not is_direct_msg:
     fp = PATH + "ballot_info.json"
     if os.path.isfile(fp): # check if the config exists
         with open(fp, "r") as f:
@@ -89,19 +95,23 @@ def loadConfig(client):
             CHANNEL_ID = int(d['GK_CHANNEL'])
             DATE_LIST = d['DATE_LIST']
             BOT_ID = int(d['GK_ID'])
-            CDNTR_ROLE = d['CDNTR_ROLE']
+            CDNTR_ROLE = int(d['CDNTR_ROLE'])
     else: # need to create a new config
         #saveConfig(client, True)
         #loadConfig(client) # need to reload now that there is config
         print('ERROR: No ballot_info.json file to read from!')
         exit(1)
 
+    CHANNEL = client.get_channel(id=CHANNEL_ID)
+    GUILD = CHANNEL.guild
     # grab bot and coordinator IDs
-    for ii in client.get_all_members():
+    for ii in GUILD.members:
+        if CDNTR_ID != 0:
+            break
         for role in ii.roles:
-            strID = str(role.id)
-            if strID  == CDNTR_ROLE:
+            if role.id  == CDNTR_ROLE:
                 CDNTR_ID = ii.id
+                break
 
 
 def log(finalGame, finalDate, gameList):
@@ -294,13 +304,12 @@ async def on_ready():
     global STATE
     global DATE_LIST
     global CDNTR_ROLE
+    global CHANNEL
 
     loadConfig(client)
     STATE = state.NEW_POLL
 
-    for channel in client.get_all_channels():
-        if channel.id == CHANNEL_ID:
-            await channel.send("Greetings! I am here to assist you in your game selection!")
+    await CHANNEL.send("Greetings! I am here to assist you in your game selection!")
     # if STATE == state.NEW_POLL:
     #     for channel in client.get_all_channels():
     #         if channel.id == CHANNEL_ID:
@@ -326,6 +335,7 @@ async def on_message(message):
     global TOTAL_PLAYERS
     global CDNTR_ID
     global BOT_ID
+    global CHANNEL
     
     # Get variables based on message sent
     id = message.author.id
@@ -402,6 +412,8 @@ async def on_message(message):
                 saveState()
                 print('NEW RSVP FINISHED, STARTING W4RSVP...')
     elif STATE == state.W4_RSVP:
+        print(message.author)
+        print(msg)
         if id == CDNTR_ID: # coordinator issued that the date vote be closed
             if message.content.find("!close") != -1:
                 FINAL_DATE = getGameDate(VOTES)
