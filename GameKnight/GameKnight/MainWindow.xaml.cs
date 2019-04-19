@@ -85,7 +85,7 @@ namespace GameKnight
         private void Window_Closed(object sender, EventArgs e)
         {
             // Close GK process
-            if(gkProc.HasExited)
+            if(gkProc != null && !gkProc.HasExited)
                 gkProc.Kill();
             // Save when the app closes
             SaveJson(PATH + @"ballot_info.json");
